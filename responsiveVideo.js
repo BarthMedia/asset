@@ -1,8 +1,8 @@
 (() => { /* Start of: BMG video 100vw by 100vw */
 
 // Global strings
-const videoWrapperSelector = '[bmg_video = "wrapper"]'
-const videoEmbedSelector = '[bmg_video = "embed"]'
+const wrapperSelector = '[bmg_video = "wrapper"]'
+const embedSelector = '[bmg_video = "embed"]'
 
 // Main function
 $(wrapperSelector).each(function()
