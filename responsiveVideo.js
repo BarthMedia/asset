@@ -13,6 +13,14 @@ $(wrapperSelector).each(function()
     // Local calc values
     let initRatio = parseInt( $video.css('width') ) / parseInt( $video.css('height') )
     let width, height
+    let bmgRatio = $video.attr('bmg_ratio')
+
+    if (bmgRatio)
+    {
+        width = parseInt( bmgRatio.split('/')[0] )
+        height = parseInt( bmgRatio.split('/')[1] )
+        initRatio = width / height
+    }
 
     // Local function
     function calcValues() 
