@@ -16,7 +16,7 @@ $(wrapperSelector).each(function()
 
     // Local functions
 
-    // Play
+    // Play/pause
     let videoClicks = 0
     $video.parent().click(function() 
     {
