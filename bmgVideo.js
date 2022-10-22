@@ -1,4 +1,4 @@
-/* Start of: BMG video code */
+(() => { /* Start of: BMG video code */
 
 // Global strings
 const wrapperSelector = '[bmg_video = "wrapper"]'
@@ -49,4 +49,4 @@ $(wrapperSelector).each(function()
     })
 })
 
-/* End of: BMG video code */
+})() /* End of: BMG video code */
