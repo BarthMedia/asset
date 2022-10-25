@@ -68,8 +68,8 @@ $(wrapperSelector).each(function()
 
         $popUpCloser.click(function()
         {
-            $video[0].muted = true
-            $video[0].play()
+            videoClicks = 0
+            $video[0].pause()
         })
     }
 })
