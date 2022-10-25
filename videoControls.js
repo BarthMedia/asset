@@ -54,7 +54,6 @@ $(wrapperSelector).each(function()
     })
 
     // Popup
-    console.log($popUpOpener)
     if ( $popUpOpener )
     {
         // Popup elements & variables
