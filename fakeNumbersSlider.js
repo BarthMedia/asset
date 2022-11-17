@@ -6,11 +6,10 @@ const numbersWrapperSelector = '[bmg-uwsc="Slide Nav Trigger"]',
     sliderSelector = '[bmg-uwsc="Slider Trigger"]'
 
 // Main function
-$(sliderSelector).each(function()
+$(sliderSelector).each(function(index_1)
 {
     // Glocal elements
-    let $numbersWrappers = $(this).find(numbersWrapperSelector),
-        $slideNavDots = $(this).find(slideNavSelector).children()
+    let $numbersWrappers = $(this).find(numbersWrapperSelector)
 
     // Glocal functions
     $numbersWrappers.each(function()
@@ -19,11 +18,14 @@ $(sliderSelector).each(function()
         let $numbers = $(this).children()
 
         // Local functions
-        $numbers.each(function(index)
+        $numbers.each(function(index_2)
         {
+            // Find dots on click
             $(this).click(() => 
             {
-                $slideNavDots.eq(index).click()
+                let $slideNavDots = $(sliderSelector).eq(index_1).find(slideNavSelector).children() // Prevent DOM loading issues
+                
+                $slideNavDots.eq(index_2).click()
             })
         })
     })
