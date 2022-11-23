@@ -3,10 +3,11 @@
 // Global elements & strings
 const $tabLinks = $('[bmg-element = "Navigation tabs menu"]').children(),
     currentPath = document.location.pathname,
-    tabPanelAttribute = 'aria-controls'
+    tabPanelAttribute = 'aria-controls',
+    loadLoopTime = 10 // ms
 
 // Main function
-$tabLinks.each(function()
+function main() { $tabLinks.each(function()
 {
     // Local elements
     let $tabLink = $(this),
@@ -29,6 +30,22 @@ $tabLinks.each(function()
             $tabLink.click()
         }
     }
-})
+}) }
+
+// Loader
+function loader()
+{
+    let testAttribute = $tabLinks.attr(tabPanelAttribute) // || undefined
+
+    if (testAttribute)
+    {
+        setTimeout( main, loadLoopTime )
+    }
+    else
+    {
+        setTimeout( loader, loadLoopTime )
+    }
+}
+loader()
 
 })() /* Start of: BMG Nav link rememberer */
