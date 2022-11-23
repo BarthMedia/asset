@@ -2,7 +2,8 @@
 
 // Global strings & elements
 const cookieName = 'bmg-show-once-loader',
-    pageLoader = document.querySelector( '[bmg-element = "Page loader"]' ),
+    pageLoaderSelector = '[bmg-element = "Page loader"]'
+    pageLoader = document.querySelector( pageLoaderSelector ),
     cookieExpirytime = parseFloat( pageLoader.getAttribute( 'bmg-data' ) || .75 ) // n in Days
 
 if ( Cookies.get(cookieName) != 'Visited.' )
@@ -11,7 +12,14 @@ if ( Cookies.get(cookieName) != 'Visited.' )
 }
 else
 {
-    pageLoader.style.setProperty('display', 'none', 'important')
+    // Create CSS
+    document.querySelector('head').innerHTML += `
+<!-- [BMG] Show loader once per day styles --> 
+<style>
+    ${ pageLoaderSelector } {
+        display: none !important
+    }
+</style>`
 }
 
 })() /* End of: BMG show loader once per day */
