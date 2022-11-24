@@ -1,7 +1,7 @@
 (() => { /* Start of: Make Video Autoplay on iPhone */
 
 // Global elements
-let videoElements = document.querySelectorAll('[bmg_video = "embed"] > video'),
+let videoElements = document.querySelectorAll('[playsinline], [autoplay]'),
     autoplayAllowed = 'undefined'
 
 // Main function
@@ -9,6 +9,7 @@ index = 0
 for (videoElement of videoElements)
 {
     index++ 
+    let localIndex = index
     videoElement.addEventListener('suspend', () => 
     {
         // suspend invoked
@@ -26,7 +27,7 @@ for (videoElement of videoElements)
 
 $('body').on('click touchstart', function ()
 {
-    if (!autoplayAllowed) // video is already playing so do nothing
+    if ( autoplayAllowed == false ) // video is already playing so do nothing
     {
         // video is not playing
         // so play video now
@@ -34,6 +35,7 @@ $('body').on('click touchstart', function ()
         {
             videoElement.play()
         }
+        autoplayAllowed = 'granted'
     }
 })
         
