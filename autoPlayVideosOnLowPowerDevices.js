@@ -5,11 +5,8 @@ let videoElements = document.querySelectorAll('[playsinline], [autoplay]'),
     autoplayAllowed = 'undefined'
 
 // Main function
-index = 0
 for (videoElement of videoElements)
 {
-    index++ 
-    let localIndex = index
     videoElement.addEventListener('suspend', () => 
     {
         // suspend invoked
