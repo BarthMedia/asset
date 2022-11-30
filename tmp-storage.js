@@ -316,12 +316,32 @@ function animateStepTransition( $currentStep, $nextStep, $form )
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
 
     
-    slideDirection = 'left to righttt'
+    slideDirection = 'top to bottom'
 
     // - Depending on slide Direction animate: -
     if ( slideDirection == 'top to bottom' ) // Top to bottom
     {
-        
+        // Local variables
+        let fromTop = { ...cssShow, y: 0 },
+            toTop = { ...cssHide, y: -$form.height() },
+            toTopQuick = { ...toTop, duration: 0 },
+            fromBottom = { ...cssShow, y: 0 },
+            toBottom = { ...cssHide, y: $form.height() },
+            toBottomQuick = { ...toBottom, duration: 0 }
+
+        // Local logic
+        if ( !isReverse )
+        {
+            // Local functions
+            tl.to($currentStep[0], toBottom)
+            tl.fromTo($nextStep[0], toTopQuick, fromTop)
+        }
+        else
+        {
+            // Local functions
+            tl.to($currentStep[0], toTop)
+            tl.fromTo($nextStep[0], toBottomQuick, fromBottom)
+        }
     }
     else if ( slideDirection == 'left to right' || slideDirection == 'default' ) // Left to right
     {
@@ -333,7 +353,19 @@ function animateStepTransition( $currentStep, $nextStep, $form )
             toRigth = { ...cssHide, x: $form.width() },
             toRigthQuick = { ...toRigth, duration: 0 }
 
-        console.log(fromLeft, toLeft)
+        // Local logic
+        if ( !isReverse )
+        {
+            // Local functions
+            tl.to($currentStep[0], toRigth)
+            tl.fromTo($nextStep[0], toLeftQuick, fromLeft)
+        }
+        else
+        {
+            // Local functions
+            tl.to($currentStep[0], toLeft)
+            tl.fromTo($nextStep[0], toRigthQuick, fromRigth)
+        }
     }
     else if ( slideDirection == 'none' ) // None
     {
