@@ -51,6 +51,8 @@ const cssShowAttribute = 'bmg-data-css-show',
     customNextSlideOutAttribute = 'bmg-data-custom-next-slide-out',
     customPrevSlideInAttribute = 'bmg-data-custom-prev-slide-in',
     customPrevSlideOutAttribute = 'bmg-data-custom-prev-slide-out',
+    customXMultiplierAttribute = 'bmg-data-custom-x-percentage-multiplier',
+    customYMultiplierAttribute = 'bmg-data-custom-y-percentage-multiplier',
     autoResizeTimeMultiplier1Attribute = 'bmg-data-auto-resize-time-multiplier-1',
     autoResizeTimeMultiplier2Attribute = 'bmg-data-auto-resize-time-multiplier-2'
 
@@ -66,6 +68,8 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     customNextSlideOutDefault = { ...cssHideDefault }, 
     customPrevSlideInDefault = { ...cssShowDefault }, 
     customPrevSlideOutDefault = { ...cssHideDefault },
+    customXMultiplierDefault = 0,
+    customYMultiplierDefault = 0,
     autoResizeTimeMultiplier1Default = 1,
     autoResizeTimeMultiplier2Default = .25
     
@@ -77,7 +81,9 @@ let stylesObject = []
 
 
 
+
 /* --- --- --- Start of: Main --- --- --- */
+
 
 
 
@@ -273,7 +279,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 
 
+
 /* --- --- --- End of: Main --- --- --- */
+
 
 
 
@@ -302,13 +310,13 @@ function animateStepTransition( $currentStep, $nextStep, $form )
         isReverse = parseInt( $currentStep.attr(stepIndexAttribute) ) > parseInt( $nextStep.attr(stepIndexAttribute) ),
         resizeHeight1 = $currentStep.height(),
         resizeHeight2 = $nextStep.height(),
-        autoResizeTime1 = parseFloat( cssShow['duration'] ),
-        autoResizeTime2 = parseFloat( cssHide['duration'] ),
+        autoResizeTime1 = cssShow['duration'],
+        autoResizeTime2 = cssHide['duration'],
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
 
     
-    slideDirection = 'left to right'
+    slideDirection = 'left to righttt'
 
     // - Depending on slide Direction animate: -
     if ( slideDirection == 'top to bottom' ) // Top to bottom
@@ -318,9 +326,14 @@ function animateStepTransition( $currentStep, $nextStep, $form )
     else if ( slideDirection == 'left to right' || slideDirection == 'default' ) // Left to right
     {
         // Local variables
-        let fromLeft = { ...cssShow, x: -(() => { return $form.width() })() },
-            toLeft = { ...cssHide, x: 0 },
-            toLeftQuick = ''
+        let fromLeft = { ...cssShow, x: 0 },
+            toLeft = { ...cssHide, x: -$form.width() },
+            toLeftQuick = { ...toLeft, duration: 0 },
+            fromRigth = { ...cssShow, x: 0 },
+            toRigth = { ...cssHide, x: $form.width() },
+            toRigthQuick = { ...toRigth, duration: 0 }
+
+        console.log(fromLeft, toLeft)
     }
     else if ( slideDirection == 'none' ) // None
     {
@@ -335,15 +348,31 @@ function animateStepTransition( $currentStep, $nextStep, $form )
             customNextSlideOut = styles['customNextSlideOut'],
             customPrevSlideIn = styles['customPrevSlideIn'],
             customPrevSlideOut = styles['customPrevSlideOut'],
-            customPrevSlideOutQuick = { ...customPrevSlideOut, duration: 0 },
+            xM = styles['customXMultiplier'],
+            yM = styles['customYMultiplier']
+
+        // Add possible x
+        if (customNextSlideIn['x'] == undefined) { customNextSlideIn['x'] = 0 }
+        if (customNextSlideOut['x'] == undefined) { customNextSlideOut['x'] = xM * $form.width() }
+        if (customPrevSlideIn['x'] == undefined) { customPrevSlideIn['x'] = 0 }
+        if (customPrevSlideOut['x'] == undefined) { customPrevSlideOut['x'] = -xM * $form.width() }
+
+        // Add possible y
+        if (customNextSlideIn['y'] == undefined) { customNextSlideIn['y'] = 0 }
+        if (customNextSlideOut['y'] == undefined) { customNextSlideOut['y'] = yM * $form.height() }
+        if (customPrevSlideIn['y'] == undefined) { customPrevSlideIn['y'] = 0 }
+        if (customPrevSlideOut['y'] == undefined) { customPrevSlideOut['y'] = -yM * $form.height() }
+
+        // Quick version
+        let customPrevSlideOutQuick = { ...customPrevSlideOut, duration: 0 },
             customNextSlideOutQuick = { ...customNextSlideOut, duration: 0 }
 
         // Local logic
         if ( !isReverse )
         {
             // Set resize time value
-            autoResizeTime1 = parseFloat( customNextSlideIn['duration'] )
-            autoResizeTime2 = parseFloat( customNextSlideOut['duration'] )
+            autoResizeTime1 = customNextSlideIn['duration']
+            autoResizeTime2 = customNextSlideOut['duration']
 
             // Local functions
             tl.to($currentStep[0], customNextSlideOut)
@@ -352,8 +381,8 @@ function animateStepTransition( $currentStep, $nextStep, $form )
         else
         {
             // Set resize time value
-            autoResizeTime1 = parseFloat( customPrevSlideIn['duration'] )
-            autoResizeTime2 = parseFloat( customPrevSlideOut['duration'] )
+            autoResizeTime1 = customPrevSlideIn['duration']
+            autoResizeTime2 = customPrevSlideOut['duration']
 
             // Local functions
             tl.to($currentStep[0], customPrevSlideOut)
@@ -515,7 +544,7 @@ function populateStylesObject( $element )
 {
     stylesObject.push(
     {
-        animationMsTime: parseInt( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
+        animationMsTime: parseFloat( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
         cssShow: getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ),
         cssHide: getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ),
         cssActive: getJsonAttrVals( $element, cssActiveAttribute, cssActiveDefault ),
@@ -526,6 +555,8 @@ function populateStylesObject( $element )
         customNextSlideOut: getJsonAttrVals( $element, customNextSlideOutAttribute, customNextSlideOutDefault ), 
         customPrevSlideIn: getJsonAttrVals( $element, customPrevSlideInAttribute, customPrevSlideInDefault ), 
         customPrevSlideOut: getJsonAttrVals( $element, customPrevSlideOutAttribute, customPrevSlideOutDefault ),
+        customXMultiplier: parseFloat( $element.attr(customXMultiplierAttribute) || customXMultiplierDefault ),
+        customYMultiplier: parseFloat( $element.attr(customYMultiplierAttribute) || customYMultiplierDefault ),
         autoResizeTimeMultiplier1: parseFloat( $element.attr(autoResizeTimeMultiplier1Attribute) || autoResizeTimeMultiplier1Default ),
         autoResizeTimeMultiplier2: parseFloat( $element.attr(autoResizeTimeMultiplier2Attribute) || autoResizeTimeMultiplier2Default )
     })
@@ -543,12 +574,12 @@ function populateStylesObject( $element )
     styles['animationSTime'] = styles['animationMsTime'] / 1000
 
     // Set duration if not declared
-    if (cssShow['duration'] == undefined) { cssShow['duration'] = `${ styles['animationSTime'] }` }
-    if (cssHide['duration'] == undefined) { cssHide['duration'] = `${ styles['animationSTime'] }` }
-    if (customNextSlideIn['duration'] == undefined) { customNextSlideIn['duration'] = `${ styles['animationSTime'] }` }
-    if (customNextSlideOut['duration'] == undefined) { customNextSlideOut['duration'] = `${ styles['animationSTime'] }` }
-    if (customPrevSlideIn['duration'] == undefined) { customPrevSlideIn['duration'] = `${ styles['animationSTime'] }` }
-    if (customPrevSlideOut['duration'] == undefined) { customPrevSlideOut['duration'] = `${ styles['animationSTime'] }` }
+    if (cssShow['duration'] == undefined) { cssShow['duration'] = styles['animationSTime'] }
+    if (cssHide['duration'] == undefined) { cssHide['duration'] = styles['animationSTime'] }
+    if (customNextSlideIn['duration'] == undefined) { customNextSlideIn['duration'] = styles['animationSTime'] }
+    if (customNextSlideOut['duration'] == undefined) { customNextSlideOut['duration'] = styles['animationSTime'] }
+    if (customPrevSlideIn['duration'] == undefined) { customPrevSlideIn['duration'] = styles['animationSTime'] }
+    if (customPrevSlideOut['duration'] == undefined) { customPrevSlideOut['duration'] = styles['animationSTime'] }
 }
 
 
