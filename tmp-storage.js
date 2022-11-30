@@ -298,7 +298,7 @@ let timeLineStorage = false
 // Function
 function animateStepTransition( $currentStep, $nextStep, $form )
 {
-    // Local variables
+    // - Local variables -
     let $otherElements = $form.find(`[${ stepIndexAttribute }]`).not( $currentStep ).not( $nextStep ),
         styleObjectIndex = parseInt( $form.parent().attr(formBlockindexAttribute) ),
         styles = stylesObject[styleObjectIndex],
@@ -315,8 +315,6 @@ function animateStepTransition( $currentStep, $nextStep, $form )
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
 
-    
-    slideDirection = 'top to bottom'
 
     // - Depending on slide Direction animate: -
     if ( slideDirection == 'top to bottom' ) // Top to bottom
@@ -421,8 +419,9 @@ function animateStepTransition( $currentStep, $nextStep, $form )
             tl.fromTo($nextStep[0], customNextSlideOutQuick, customPrevSlideIn)
         }
     }
+
     
-    // Autoresize the form element; Depending on the 2 step sizes
+    // - Autoresize the form element; Depending on the 2 step sizes -
     if ( resizeHeight2 >= resizeHeight1 )
     {
         gsap.to($form[0], { height: resizeHeight2, duration: autoResizeTime1 * autoResizeTimeMultiplier1 })
@@ -433,7 +432,8 @@ function animateStepTransition( $currentStep, $nextStep, $form )
         gsap.to($form[0], { height: resizeHeight2, duration: autoResizeTime2 * autoResizeTimeMultiplier2 }).delay(autoResizeTime1)
     }
 
-    // Clear gsap timeline in case the form gets navigated quickly
+    
+    // - Clear gsap timeline in case the form gets navigated quickly -
     if ( timeLineStorage ) timeLineStorage.clear()
     timeLineStorage = tl
     $otherElements.hide()
@@ -574,6 +574,7 @@ function markClickElement( $buttons, $button = false )
 // - - Populate styles object - -
 function populateStylesObject( $element )
 {
+    // Push initial values
     stylesObject.push(
     {
         animationMsTime: parseFloat( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
