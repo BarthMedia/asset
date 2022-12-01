@@ -17,7 +17,8 @@ const formBlockSelctor = '[bmg-form = "Form Block"]',
 // Webflow classes
 const radioSelector = '.w-radio',
     checkboxSelector = '.w-checkbox',
-    wButtonSelector = '.w-button'
+    wButtonSelector = '.w-button',
+    successSelector = '.w-form-done'
 
 // Functional attribues
 const formBlockindexAttribute = 'bmg-data-form-block-index',
@@ -213,15 +214,8 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             // Remove all steps that are not part of the click record before submitting
             removeOtherSteps(nextStepObject, clickRecord, $formBlock)
 
-            if ( devMode < 1 ) // If dev mode is half or higher, do not:
-            {
-                $form.submit()
-            }
-            else
-            {
-                console.log(`Dev mode ${ devMode }: Perform fake submit...`)
-                // performFakeSubmit( $formBlock )
-            }
+            // Submit
+            performVisualSubmit( $formBlock, $form, devMode )
         }
         else
         {
@@ -324,6 +318,27 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 
 // + Helper functions +
+
+// - - Visual appealing submit - -
+function performVisualSubmit( $formBlock, $form, devMode = 0 )
+{
+    // Local variables
+    let animationMsTime = 350
+
+    // Dev mode logic
+    if ( devMode < 1 ) // If dev mode is half or higher, do not:
+    {
+        setTimeout( $form.submit(), animationMsTime )
+    }
+    else
+    {
+        console.log(`Dev mode ${ devMode }: Perform fake submit...`)
+    }
+
+    // Animation
+    $form.hide()
+    $formBlock.find(successSelector).show()
+}
 
 
 // - - Step transit animation - -
