@@ -24,17 +24,18 @@ const radioSelector = '.w-radio',
 const formBlockindexAttribute = 'bmg-data-form-block-index',
     stepIndexAttribute = 'bmg-data-step-index',
     stepTypeAttribute = 'bmg-data-step-type',
+    relativeLastStepAttribute = 'bmg-data-relative-last-step',
     conditionalAttribute = 'bmg-data-conditional',
     conditionalNextAttribute = 'bmg-data-conditional-next',
     notAutoContinueAttribute = 'bmg-data-not-auto-continue',
-    devModeAttribute = 'bmg-data-dev-mode',
     markClickElementAttribute = 'bmg-data-click-element',
     clickElementIdAttribute = 'bmg-data-click-element-id',
     removeOtherStepsAttribute = 'bmg-data-remove-other-steps',
     autoFocusAttribute = 'bmg-data-autofocus',
     keyboardEventsOnStepAttribute = 'bmg-data-keyboard-events',
     escEventAttribute = 'bmg-data-esc-event',
-    enterEventAttribute = 'bmg-data-enter-event'
+    enterEventAttribute = 'bmg-data-enter-event',
+    devModeAttribute = 'bmg-data-dev-mode'
 
 // Functional defaults
 const escEventDefault = 'escape, esc, arrowup, up',
@@ -43,19 +44,19 @@ const escEventDefault = 'escape, esc, arrowup, up',
 // Development mode object
 const devModeObject = [
     {
-        name: ['false'],
+        names: ['false'],
         value: 0
     },
     {
-        name: ['half', '50%'],
+        names: ['half', '50%'],
         value: 1
     },
     {
-        name: ['on', 'true', '100%'],
+        names: ['on', 'true', '100%'],
         value: 2
     },
     {
-        name: ['extreme', '200%'],
+        names: ['extreme', '200%'],
         value: 3
     }]
 
@@ -124,9 +125,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         keyEventsAllowed = true
 
     // Glocal attributes
-    let devMode = 1 // returnDevModeIndex( $formBlock ) // attr.(dev mode attribute)
-
-    
+    let devMode = returnDevModeIndex( $formBlock ) // attr.(dev mode attribute)
 
     
     // - Styling -
@@ -269,7 +268,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
 
     // Allow key board controls only on the recently clicked form
-    $formBlock.click(() => 
+    $formBlock.mouseenter(() => 
     {
         $(formBlockSelctor).attr(autoFocusAttribute, false)
         $formBlock.attr(autoFocusAttribute, true)
@@ -360,7 +359,7 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
     
     // - Local variables -
     let $otherElements = $form.find(`[${ stepIndexAttribute }]`).not( $currentStep ).not( $nextStep ),
-        styleObjectIndex = parseInt( $form.parent().attr(formBlockindexAttribute) ),
+        styleObjectIndex = parseInt( $form.closest(formBlockSelctor).attr(formBlockindexAttribute) ),
         styles = stylesObject[styleObjectIndex],
         cssShow = styles['cssShow'],
         cssHide = styles['cssHide'],
@@ -633,10 +632,12 @@ function creatNextStepObject( $steps )
     stepsObject.forEach(step => 
     {
         // Local val
-        let stepIndex = step.step
+        let stepIndex = step.step,
+            relativeLast = step.$.attr(relativeLastStepAttribute)
 
         // Conditional last logic
         step.isLast = stepIndex == stepsCount -1 ? true : false
+        if ( relativeLast == 'true' ) step.isLast = true
 
         // Next id logic
         step.buttons.forEach(button => 
@@ -905,6 +906,27 @@ function preJsonParse( string, objectMode = true )
 function trimBothStringSides( string )
 {
     return string.substring(1).slice(0, -1)
+}
+
+
+// - - Development mode - -
+function returnDevModeIndex( $element )
+{
+    // Local variables
+    let attrString = $element.attr( devModeAttribute ),
+        returnValue = 0
+
+    // Local function
+    devModeObject.forEach(item => 
+    {
+        // Loop through
+        item.names.forEach(name => 
+        {
+            if ( name == attrString ) { returnValue = item.value }
+        })
+    }) 
+
+    return returnValue
 }
 
 
