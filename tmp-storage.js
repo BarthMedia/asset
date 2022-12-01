@@ -38,6 +38,26 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
 // Functional defaults
 const escEventDefault = 'escape, esc, arrowup, up',
     enterEventDefault = 'enter, arrowdown, down'
+
+// Development mode object
+const devMode = [
+    {
+        name: ['off', 'false', '0%'],
+        value: 0
+    },
+    {
+        name: ['half', '50%'],
+        value: 1
+    },
+    {
+        name: ['on', 'true', '100%'],
+        value: 2
+    },
+    {
+        name: ['extreme', '200%'],
+        value: 3
+    }]
+
     
 // Style attributes
 const cssShowAttribute = 'bmg-data-css-show',
@@ -72,7 +92,6 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     customYMultiplierDefault = 0,
     autoResizeTimeMultiplier1Default = 1,
     autoResizeTimeMultiplier2Default = .25
-    
 
 // Styles object
 let stylesObject = []
@@ -103,6 +122,11 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     let clickRecord = [{step: 0}],
         keyEventsAllowed = true
 
+    // Glocal attributes
+    let devMode // returnDevModeIndex( $formBlock ) // attr.(dev mode attribute)
+
+    
+
     
     // - Styling -
     
@@ -110,7 +134,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     populateStylesObject( $formBlock )
 
     // Delete visual dividers
-    if ( $formBlock.attr(devModeAttribute) != 'true' )
+    if ( devMode >= 2 ) // is on
     {
         $form.find(dividerSelctor).remove()
         $steps.hide()
@@ -199,7 +223,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             clickRecord.push({step: nextStepId})
 
             // Call transition animation
-            animateStepTransition( $currentStep, $nextStep, $form )
+            animateStepTransition( $currentStep, $nextStep, $form, devMode )
         }
     }
 
@@ -219,7 +243,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
             // Functions
             clickRecord.pop() // Remove last element
-            animateStepTransition( $currentStep, $prevStep, $form )
+            animateStepTransition( $currentStep, $prevStep, $form, devMode )
         }
     }
 
@@ -296,8 +320,11 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 let timeLineStorage = false
 
 // Function
-function animateStepTransition( $currentStep, $nextStep, $form )
+function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 {
+    // Turn off animations on extreme dev mode
+    if ( devMode >= 3 ) { return }
+    
     // - Local variables -
     let $otherElements = $form.find(`[${ stepIndexAttribute }]`).not( $currentStep ).not( $nextStep ),
         styleObjectIndex = parseInt( $form.parent().attr(formBlockindexAttribute) ),
@@ -305,11 +332,12 @@ function animateStepTransition( $currentStep, $nextStep, $form )
         cssShow = styles['cssShow'],
         cssHide = styles['cssHide'],
         cssHideQuick = { ...cssHide, duration: 0 },
-        slideDirection = styles['slideDirection'].toLowerCase(),
         tl = new gsap.timeline(),
-        isReverse = parseInt( $currentStep.attr(stepIndexAttribute) ) > parseInt( $nextStep.attr(stepIndexAttribute) ),
         resizeHeight1 = $currentStep.height(),
         resizeHeight2 = $nextStep.height(),
+        isEqualHeight = resizeHeight1 == resizeHeight2
+        isReverse = parseInt( $currentStep.attr(stepIndexAttribute) ) > parseInt( $nextStep.attr(stepIndexAttribute) ),
+        slideDirection = styles['slideDirection'].toLowerCase(),
         autoResizeTime1 = cssShow['duration'],
         autoResizeTime2 = cssHide['duration'],
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
@@ -376,6 +404,8 @@ function animateStepTransition( $currentStep, $nextStep, $form )
             fromRigth = { ...cssShow, x: 0 },
             toRigth = { ...cssHide, x: $form.width() },
             toRigthQuick = { ...toRigth, duration: 0 }
+
+        console.log(isEqualHeight + ' - height of slides is euqal ... or not.')
 
         // Local logic
         if ( !isReverse )
