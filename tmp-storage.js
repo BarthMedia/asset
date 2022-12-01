@@ -36,8 +36,8 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     enterEventAttribute = 'bmg-data-enter-event'
 
 // Functional defaults
-const escEventDefault = 'escape, esc',
-    enterEventDefault = 'enter'
+const escEventDefault = 'escape, esc, arrowup, up',
+    enterEventDefault = 'enter, arrowdown, down'
     
 // Style attributes
 const cssShowAttribute = 'bmg-data-css-show',
@@ -63,7 +63,7 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     cssInactiveDefault = { opacity: .5 },
     animationMsTimeDefault = 500,
     errorColorDefault = 'red',
-    slideDirectionDefault = 'Top to bottom',
+    slideDirectionDefault = 'to left',
     customNextSlideInDefault = { ...cssShowDefault },
     customNextSlideOutDefault = { ...cssHideDefault }, 
     customPrevSlideInDefault = { ...cssShowDefault }, 
@@ -315,9 +315,11 @@ function animateStepTransition( $currentStep, $nextStep, $form )
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
 
+    // slideDirection = 'to top'
+
 
     // - Depending on slide Direction animate: -
-    if ( slideDirection == 'top to bottom' ) // Top to bottom
+    if ( slideDirection == 'to bottom' ) // Top to bottom
     {
         // Local variables
         let fromTop = { ...cssShow, y: 0 },
@@ -341,7 +343,55 @@ function animateStepTransition( $currentStep, $nextStep, $form )
             tl.fromTo($nextStep[0], toBottomQuick, fromBottom)
         }
     }
-    else if ( slideDirection == 'left to right' || slideDirection == 'default' ) // Left to right
+    else if ( slideDirection == 'to top' ) // Bottom to top
+    {
+        // Local variables
+        let fromTop = { ...cssShow, y: 0 },
+            toTop = { ...cssHide, y: -$form.height() },
+            toTopQuick = { ...toTop, duration: 0 },
+            fromBottom = { ...cssShow, y: 0 },
+            toBottom = { ...cssHide, y: $form.height() },
+            toBottomQuick = { ...toBottom, duration: 0 }
+
+        // Local logic
+        if ( !isReverse )
+        {
+            // Local functions
+            tl.to($currentStep[0], toTop)
+            tl.fromTo($nextStep[0], toBottomQuick, fromBottom)
+        }
+        else
+        {
+            // Local functions
+            tl.to($currentStep[0], toBottom)
+            tl.fromTo($nextStep[0], toTopQuick, fromTop)
+        }
+    }
+    else if ( slideDirection == 'to left' || slideDirection == 'default' ) // Right to left
+    {
+        // Local variables
+        let fromLeft = { ...cssShow, x: 0 },
+            toLeft = { ...cssHide, x: -$form.width() },
+            toLeftQuick = { ...toLeft, duration: 0 },
+            fromRigth = { ...cssShow, x: 0 },
+            toRigth = { ...cssHide, x: $form.width() },
+            toRigthQuick = { ...toRigth, duration: 0 }
+
+        // Local logic
+        if ( !isReverse )
+        {
+            // Local functions
+            tl.to($currentStep[0], toLeft)
+            tl.fromTo($nextStep[0], toRigthQuick, fromRigth)
+        }
+        else
+        {
+            // Local functions
+            tl.to($currentStep[0], toRigth)
+            tl.fromTo($nextStep[0], toLeftQuick, fromLeft)
+        }
+    }
+    else if ( slideDirection == 'to right' ) // Left to right
     {
         // Local variables
         let fromLeft = { ...cssShow, x: 0 },
