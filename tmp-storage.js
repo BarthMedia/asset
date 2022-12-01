@@ -40,9 +40,9 @@ const escEventDefault = 'escape, esc, arrowup, up',
     enterEventDefault = 'enter, arrowdown, down'
 
 // Development mode object
-const devMode = [
+const devModeObject = [
     {
-        name: ['off', 'false', '0%'],
+        name: ['false'],
         value: 0
     },
     {
