@@ -123,7 +123,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         keyEventsAllowed = true
 
     // Glocal attributes
-    let devMode // returnDevModeIndex( $formBlock ) // attr.(dev mode attribute)
+    let devMode = 1 // returnDevModeIndex( $formBlock ) // attr.(dev mode attribute)
 
     
 
@@ -134,11 +134,15 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     populateStylesObject( $formBlock )
 
     // Delete visual dividers
-    if ( devMode >= 2 ) // is on
+    if ( devMode < 2 ) // If dev mode is on or higher, do not:
     {
         $form.find(dividerSelctor).remove()
         $steps.hide()
         $steps.eq(0).show()
+    }
+    else
+    {
+        console.log(`Dev mode ${ devMode }: Visual dividers not removed...`)
     }
 
     
@@ -208,8 +212,16 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             
             // Remove all steps that are not part of the click record before submitting
             removeOtherSteps(nextStepObject, clickRecord, $formBlock)
-            
-            // $form.submit()
+
+            if ( devMode < 1 ) // If dev mode is half or higher, do not:
+            {
+                $form.submit()
+            }
+            else
+            {
+                console.log(`Dev mode ${ devMode }: Perform fake submit...`)
+                // performFakeSubmit( $formBlock )
+            }
         }
         else
         {
@@ -323,7 +335,7 @@ let timeLineStorage = false
 function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 {
     // Turn off animations on extreme dev mode
-    if ( devMode >= 3 ) { return }
+    if ( devMode >= 3 ) { console.log(`Dev mode ${ devMode }: Block the transition animation...`); return }
     
     // - Local variables -
     let $otherElements = $form.find(`[${ stepIndexAttribute }]`).not( $currentStep ).not( $nextStep ),
