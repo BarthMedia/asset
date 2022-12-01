@@ -2,8 +2,9 @@
 
 // + Global strings +
 
-// Dependencies
-const dependencies = typeof gsap // Make sure GSAP doesn't load twice
+// Dependencies - make sure scripts don't load twice
+const gsapDependency = typeof gsap, 
+    hammerJsDependency = typeof Hammer
 
 // Custom selectors
 const formBlockSelctor = '[bmg-form = "Form Block"]',
@@ -76,7 +77,10 @@ const cssShowAttribute = 'bmg-data-css-show',
     customXMultiplierAttribute = 'bmg-data-custom-x-percentage-multiplier',
     customYMultiplierAttribute = 'bmg-data-custom-y-percentage-multiplier',
     autoResizeTimeMultiplier1Attribute = 'bmg-data-auto-resize-time-multiplier-1',
-    autoResizeTimeMultiplier2Attribute = 'bmg-data-auto-resize-time-multiplier-2'
+    autoResizeTimeMultiplier2Attribute = 'bmg-data-auto-resize-time-multiplier-2',
+    maxSwipeScreenSizeAttribute = 'bmg-data-max-swipe-screen-size',
+    minSwipeScreenSizeAttribute = 'bmg-data-min-swipe-screen-size',
+    swipeTypeAnimationAttribute = 'bmg-data-swipe-type-animation'
 
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
@@ -93,7 +97,9 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     customXMultiplierDefault = 0,
     customYMultiplierDefault = 0,
     autoResizeTimeMultiplier1Default = 1,
-    autoResizeTimeMultiplier2Default = .25
+    autoResizeTimeMultiplier2Default = .25,
+    maxSwipeScreenSizeDefault = 767,
+    minSwipeScreenSizeDefault = 0
 
 // Styles object
 let stylesObject = []
@@ -258,6 +264,15 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         if ( devMode > 0 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
 
+
+    // - Find next -
+    function findNext()
+    {
+        // Search last clicked button & click it; If not existent mark first as "clicked" & & check if field is required && mark that first || second time make red error ; visually outline it; when rerurn it  do first action
+        
+        console.log('Searching for stepIndex & buttonIndex...')
+    }
+
     
     // - Handle bmg autofocus & keyboard events -
 
@@ -303,10 +318,77 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             }
             else if ( enterEvent.includes(key) && !evt.shiftKey ) // Only if shift is not pressed
             {
-                console.log(evt.key + ' - I still need to be programmed.')
-                // Search last clicked button & click it; If not existent mark first as "clicked" & & check if field is required && mark that first || second time make red error ; visually outline it; when rerurn it  do first action
+                findNext()
             }
         }
+    }
+
+
+    // - Handle mobile swipe gestures -
+
+    // Init
+    defineSwipeType( $formBlock )
+
+    // Variables
+    let hammer = Hammer( $formBlock[0] ),
+        type = $formBlock.attr(swipeTypeAnimationAttribute)
+
+    // Init all swipe directions
+    hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+
+    console.log(type)
+
+    // Variations 
+    if ( type == 'false' )
+    {
+    }
+    else if ( type == 'to bottom' )
+    {
+        hammer.on('swipeup', goToPrevStep)
+        hammer.on('swipedown', findNext)
+    }
+    else if ( type == 'to top' || type == 'vertical' )
+    {
+        hammer.on('swipeup', findNext)
+        hammer.on('swipedown', goToPrevStep)
+    }
+    else if ( type == 'to left' || type == 'default' || type == 'horizontal' )
+    {
+        hammer.on('swipeleft', findNext)
+        hammer.on('swiperight', goToPrevStep)
+    }
+    else if ( type == 'to right' )
+    {
+        hammer.on('swipeleft', goToPrevStep)
+        hammer.on('swiperight', findNext)
+    }
+    else if ( type == '4' || type == '270°' )
+    {
+        hammer.on('swipeup', goToPrevStep)
+        hammer.on('swipeleft', findNext)
+        hammer.on('swiperight', findNext)
+        hammer.on('swipedown', goToPrevStep)
+    }
+    else if ( type == '3' || type == '180°' )
+    {
+        hammer.on('swipeup', goToPrevStep)
+        hammer.on('swipeleft', findNext)
+        hammer.on('swiperight', findNext)
+        hammer.on('swipedown', goToPrevStep)
+    }
+    else if ( type == '2' || type == '90°' )
+    {
+        hammer.on('swipeup', goToPrevStep)
+        hammer.on('swipeleft', findNext)
+        hammer.on('swiperight', findNext)
+        hammer.on('swipedown', goToPrevStep)
+    }
+    else // == 'none' || 1 || 'standard' || 0°
+    {
+        hammer.on('swipeup', findNext)
+        hammer.on('swipeleft', findNext)
+        hammer.on('swiperight', goToPrevStep)
+        hammer.on('swipedown', goToPrevStep)
     }
 }) }
 
@@ -323,6 +405,33 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 
 // + Helper functions +
+
+// - - Initialize Mobile Swipe gestures - -
+function defineSwipeType( $element )
+{
+    // Local variables
+    let styleObjectIndex = parseInt( $element.attr(formBlockindexAttribute) ),
+        type = $element.attr(swipeTypeAnimationAttribute),
+        styles = stylesObject[styleObjectIndex],
+        slideDirection = styles['slideDirection'].toLowerCase(),
+        maxScreenSize = styles['maxSwipeScreenSize'],
+        minScreenSize = styles['minSwipeScreenSize'],
+        width = $(window).width()
+
+    slideDirection = 'to top'
+
+    // Logic: Tell DOM the swipe type
+    if ( width <= maxScreenSize && width >= minScreenSize)
+    {
+        if ( type != undefined ) { slideDirection = type }
+        $element.attr(swipeTypeAnimationAttribute, slideDirection)
+    }
+    else
+    {
+        $element.attr(swipeTypeAnimationAttribute, 'false')
+    }
+}
+
 
 // - - Visual appealing submit - -
 function performVisualSubmit( $formBlock, $form, devMode = 0 )
@@ -375,7 +484,7 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
 
-    // slideDirection = 'to top'
+    slideDirection = 'to top'
 
 
     // - Depending on slide Direction animate: -
@@ -705,7 +814,9 @@ function populateStylesObject( $element )
         customXMultiplier: parseFloat( $element.attr(customXMultiplierAttribute) || customXMultiplierDefault ),
         customYMultiplier: parseFloat( $element.attr(customYMultiplierAttribute) || customYMultiplierDefault ),
         autoResizeTimeMultiplier1: parseFloat( $element.attr(autoResizeTimeMultiplier1Attribute) || autoResizeTimeMultiplier1Default ),
-        autoResizeTimeMultiplier2: parseFloat( $element.attr(autoResizeTimeMultiplier2Attribute) || autoResizeTimeMultiplier2Default )
+        autoResizeTimeMultiplier2: parseFloat( $element.attr(autoResizeTimeMultiplier2Attribute) || autoResizeTimeMultiplier2Default ),
+        maxSwipeScreenSize: parseInt( $element.attr(maxSwipeScreenSizeAttribute) || maxSwipeScreenSizeDefault ),
+        minSwipeScreenSize: parseInt( $element.attr(minSwipeScreenSizeAttribute) || minSwipeScreenSizeDefault )
     })
 
     // Iterate over created object
@@ -943,13 +1054,17 @@ jQuery.loadScript = function (url, callback) {
 }
 
 // Loader
-if (dependencies == 'undefined') $.loadScript('https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js', function()
-{
-    main()
-})
-else
-{
-    main()
+"undefined" == hammerJsDependency
+    ? $.loadScript("https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js", function () {
+          loadGsap();
+      })
+    : loadGsap();
+function loadGsap() {
+    "undefined" == gsapDependency
+        ? $.loadScript("https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js", function () {
+              main();
+          })
+        : main();
 }
 
 /* End of: BMG - Universal multistep forms script */
