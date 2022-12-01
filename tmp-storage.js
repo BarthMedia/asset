@@ -231,6 +231,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             // Call transition animation
             animateStepTransition( $currentStep, $nextStep, $form, devMode )
         }
+
+        // Dev mode
+        if ( devMode > 0 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
 
     
@@ -251,6 +254,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             clickRecord.pop() // Remove last element
             animateStepTransition( $currentStep, $prevStep, $form, devMode )
         }
+
+        // Dev mode
+        if ( devMode > 0 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
 
     
