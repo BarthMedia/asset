@@ -36,12 +36,16 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     keyboardEventsOnStepAttribute = 'bmg-data-keyboard-events',
     escEventAttribute = 'bmg-data-esc-event',
     enterEventAttribute = 'bmg-data-enter-event',
+    leftEventAttribute = 'bmg-data-left-event',
+    rigthEventAttribute = 'bmg-data-rigth-event',
     devModeAttribute = 'bmg-data-dev-mode',
     swipeAllowedAttribute = 'bmg-data-swipe-allowed'
 
 // Functional defaults
 const escEventDefault = 'escape, esc, arrowup, up',
-    enterEventDefault = 'enter, arrowdown, down'
+    enterEventDefault = 'enter, arrowdown, down',
+    leftEventDefault = 'arrowleft, left',
+    rightEventDefault = 'arrowright, right'
 
 // Development mode object
 const devModeObject = [
@@ -82,7 +86,11 @@ const cssShowAttribute = 'bmg-data-css-show',
     autoResizeTimeMultiplier2Attribute = 'bmg-data-auto-resize-time-multiplier-2',
     maxSwipeScreenSizeAttribute = 'bmg-data-max-swipe-screen-size',
     minSwipeScreenSizeAttribute = 'bmg-data-min-swipe-screen-size',
-    swipeTypeAnimationAttribute = 'bmg-data-swipe-type-animation'
+    swipeTypeAnimationAttribute = 'bmg-data-swipe-type-animation',
+    submitMsTime1Attribute = 'bmg-data-submit-ms-time-1',
+    submitMsTime2Attribute = 'bmg-data-submit-ms-time-2',
+    submitShowAttribute = 'bmg-data-submit-show',
+    submitHideAttribute = 'bmg-data-submit-hide'
 
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
@@ -102,7 +110,9 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     autoResizeTimeMultiplier1Default = 1,
     autoResizeTimeMultiplier2Default = .5,
     maxSwipeScreenSizeDefault = 767,
-    minSwipeScreenSizeDefault = 0
+    minSwipeScreenSizeDefault = 0,
+    submitShowDefault = { ...cssShowDefault },
+    submitHideDefault = { ...cssHideDefault }
 
 // Styles object
 let stylesObject = []
@@ -436,7 +446,7 @@ function defineSwipeType( $element )
         slideDirection = styles['slideDirection'].toLowerCase(),
         maxScreenSize = styles['maxSwipeScreenSize'],
         minScreenSize = styles['minSwipeScreenSize'],
-        width = $(window).width()
+        width = $(window).outerWidth( true )
 
     // Logic: Tell DOM the swipe type
     if ( width <= maxScreenSize && width >= minScreenSize)
@@ -452,26 +462,54 @@ function defineSwipeType( $element )
 
 
 // - - Visual appealing submit - -
-function performVisualSubmit( $formBlock, $form, devMode = 0 )
+function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
 {
     // Local variables
-    let animationMsTime = 350
+    let $success = $formBlock.find(successSelector),
+        styleIndex = $formBlock.attr(formBlockindexAttribute),
+        styles = stylesObject[styleIndex],
+        time1 = styles['submitMsTime1'] / 1000,
+        time2 = styles['submitMsTime2'] / 1000,
+        submitHide = styles['submitHide'],
+        submitShow = styles['submitShow'],
+        resizeHeight1 = $form.outerHeight( true ),
+        resizeHeight2 = $success.outerHeight( true ),
+        multiplier1 = styles['autoResizeTimeMultiplier1'],
+        multiplier2 = styles['autoResizeTimeMultiplier2'],
+        tl = new gsap.timeline()
+
+    console.log(resizeHeight2, resizeHeight1)
 
     // Dev mode logic
     if ( devMode < 1 ) // If dev mode is half or higher, do not:
     {
-        setTimeout( $form.submit(), animationMsTime )
+        setTimeout( $form.submit(), time1 * 1000 )
     }
     else
     {
         console.log(`Dev mode ${ devMode }: Perform fake submit...`)
     }
 
-    console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
+    // - GSAP animations -
 
-    // Animation
-    $form.hide()
-    $formBlock.find(successSelector).show()
+    // Animate submission transition
+    tl.to($form[0], submitHide)
+    tl.to($success[0], submitShow)
+
+    // Change frame height smoothly
+    if ( resizeHeight2 >= resizeHeight1 )
+    {
+        gsap.to($formBlock[0], { height: resizeHeight2, duration: time1 * multiplier1 })
+    }
+    else
+    {
+        gsap.set($formBlock[0], { height: resizeHeight1 })
+        gsap.to($formBlock[0], { height: resizeHeight2, duration: time2 * multiplier2 }).delay(time1)
+    }
+
+
+    // Continues logic. TODO:
+    console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
 }
 
 
@@ -494,8 +532,8 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         cssHide = styles['cssHide'],
         cssHideQuick = { ...cssHide, duration: 0 },
         tl = new gsap.timeline(),
-        resizeHeight1 = $currentStep.height(),
-        resizeHeight2 = $nextStep.height(),
+        resizeHeight1 = $currentStep.outerHeight( true ),
+        resizeHeight2 = $nextStep.outerHeight( true ),
         isEqualHeight = resizeHeight1 == resizeHeight2,
         speedMultiplier = isEqualHeight ? styles['equalHeightTransitionSpeedMultiplier'] : 1
         speedMultiplierString = `<+=${ speedMultiplier * 100 }%`,
@@ -515,10 +553,10 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
     {
         // Local variables
         let fromTop = { ...cssShow, y: 0 },
-            toTop = { ...cssHide, y: -$form.height() },
+            toTop = { ...cssHide, y: -$form.outerHeight( true ) },
             toTopQuick = { ...toTop, duration: 0 },
             fromBottom = { ...cssShow, y: 0 },
-            toBottom = { ...cssHide, y: $form.height() },
+            toBottom = { ...cssHide, y: $form.outerHeight( true ) },
             toBottomQuick = { ...toBottom, duration: 0 }
 
         // Local logic
@@ -539,10 +577,10 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
     {
         // Local variables
         let fromTop = { ...cssShow, y: 0 },
-            toTop = { ...cssHide, y: -$form.height() },
+            toTop = { ...cssHide, y: -$form.outerHeight( true ) },
             toTopQuick = { ...toTop, duration: 0 },
             fromBottom = { ...cssShow, y: 0 },
-            toBottom = { ...cssHide, y: $form.height() },
+            toBottom = { ...cssHide, y: $form.outerHeight( true ) },
             toBottomQuick = { ...toBottom, duration: 0 }
 
         // Local logic
@@ -563,10 +601,10 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
     {
         // Local variables
         let fromLeft = { ...cssShow, x: 0 },
-            toLeft = { ...cssHide, x: -$form.width() },
+            toLeft = { ...cssHide, x: -$form.outerWidth( true ) },
             toLeftQuick = { ...toLeft, duration: 0 },
             fromRigth = { ...cssShow, x: 0 },
-            toRigth = { ...cssHide, x: $form.width() },
+            toRigth = { ...cssHide, x: $form.outerWidth( true ) },
             toRigthQuick = { ...toRigth, duration: 0 }
 
         // Local logic
@@ -587,10 +625,10 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
     {
         // Local variables
         let fromLeft = { ...cssShow, x: 0 },
-            toLeft = { ...cssHide, x: -$form.width() },
+            toLeft = { ...cssHide, x: -$form.outerWidth( true ) },
             toLeftQuick = { ...toLeft, duration: 0 },
             fromRigth = { ...cssShow, x: 0 },
-            toRigth = { ...cssHide, x: $form.width() },
+            toRigth = { ...cssHide, x: $form.outerWidth( true ) },
             toRigthQuick = { ...toRigth, duration: 0 }
 
         // Local logic
@@ -625,15 +663,15 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 
         // Add possible x
         if (customNextSlideIn['x'] == undefined) { customNextSlideIn['x'] = 0 }
-        if (customNextSlideOut['x'] == undefined) { customNextSlideOut['x'] = xM * $form.width() }
+        if (customNextSlideOut['x'] == undefined) { customNextSlideOut['x'] = xM * $form.outerWidth( true ) }
         if (customPrevSlideIn['x'] == undefined) { customPrevSlideIn['x'] = 0 }
-        if (customPrevSlideOut['x'] == undefined) { customPrevSlideOut['x'] = -xM * $form.width() }
+        if (customPrevSlideOut['x'] == undefined) { customPrevSlideOut['x'] = -xM * $form.outerWidth( true ) }
 
         // Add possible y
         if (customNextSlideIn['y'] == undefined) { customNextSlideIn['y'] = 0 }
-        if (customNextSlideOut['y'] == undefined) { customNextSlideOut['y'] = yM * $form.height() }
+        if (customNextSlideOut['y'] == undefined) { customNextSlideOut['y'] = yM * $form.outerHeight( true ) }
         if (customPrevSlideIn['y'] == undefined) { customPrevSlideIn['y'] = 0 }
-        if (customPrevSlideOut['y'] == undefined) { customPrevSlideOut['y'] = -yM * $form.height() }
+        if (customPrevSlideOut['y'] == undefined) { customPrevSlideOut['y'] = -yM * $form.outerHeight( true ) }
 
         // Quick version
         let customPrevSlideOutQuick = { ...customPrevSlideOut, duration: 0 },
@@ -861,6 +899,17 @@ function populateStylesObject( $element )
     if (customNextSlideOut['duration'] == undefined) { customNextSlideOut['duration'] = styles['animationSTime'] }
     if (customPrevSlideIn['duration'] == undefined) { customPrevSlideIn['duration'] = styles['animationSTime'] }
     if (customPrevSlideOut['duration'] == undefined) { customPrevSlideOut['duration'] = styles['animationSTime'] }
+
+    // Define submission time
+    styles['submitMsTime1'] = parseFloat( $element.attr(submitMsTime1Attribute) ) || styles['animationMsTime']
+    styles['submitMsTime2'] = parseFloat( $element.attr(submitMsTime2Attribute) ) || styles['animationMsTime']
+
+    // Define submit animation type
+    styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, submitHideDefault )
+    styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, submitShowDefault )
+
+    if (styles['submitHide'] == undefined) { style['duration'] = styles['submitMsTime1'] / 1000 }
+    if (styles['submitShow'] == undefined) { style['duration'] = styles['submitMsTime2'] / 1000 }
 }
 
 
