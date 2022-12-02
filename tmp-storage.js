@@ -36,7 +36,8 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     keyboardEventsOnStepAttribute = 'bmg-data-keyboard-events',
     escEventAttribute = 'bmg-data-esc-event',
     enterEventAttribute = 'bmg-data-enter-event',
-    devModeAttribute = 'bmg-data-dev-mode'
+    devModeAttribute = 'bmg-data-dev-mode',
+    swipeAllowedAttribute = 'bmg-data-swipe-allowed'
 
 // Functional defaults
 const escEventDefault = 'escape, esc, arrowup, up',
@@ -68,6 +69,7 @@ const cssShowAttribute = 'bmg-data-css-show',
     cssActiveAttribute = 'bmg-data-css-active',
     cssInactiveAttribute = 'bmg-data-css-inactive',
     animationMsTimeAttribute = 'bmg-data-animation-ms-time',
+    equalHeightTransitionSpeedMultiplierAttribute = 'bmg-data-equal-height-transition-speed-multiplier',
     errorColorAttribute = 'bmg-data-error-color',
     slideDirectionAttribute = 'bmg-data-slide-direction',
     customNextSlideInAttribute = 'bmg-data-custom-next-slide-in',
@@ -88,6 +90,7 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     cssActiveDefault = { opacity: 1 },
     cssInactiveDefault = { opacity: .5 },
     animationMsTimeDefault = 500,
+    equalHeightTransitionSpeedMultiplierDefault = 0.25,
     errorColorDefault = 'red',
     slideDirectionDefault = 'to left',
     customNextSlideInDefault = { ...cssShowDefault },
@@ -97,7 +100,7 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     customXMultiplierDefault = 0,
     customYMultiplierDefault = 0,
     autoResizeTimeMultiplier1Default = 1,
-    autoResizeTimeMultiplier2Default = .25,
+    autoResizeTimeMultiplier2Default = .5,
     maxSwipeScreenSizeDefault = 767,
     minSwipeScreenSizeDefault = 0
 
@@ -201,23 +204,23 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
     
     // - Create next step object -
-    let nextStepObject = creatNextStepObject( $steps )
+    let stepLogicObject = creatNextStepObject( $steps )
 
     
     // - Go to next step -
     function goToNextStep( stepIndex, buttonIndex )
     {
         // Variable
-        let nextStepId = nextStepObject[stepIndex].buttons[buttonIndex].nextStepId
+        let nextStepId = stepLogicObject[stepIndex].buttons[buttonIndex].nextStepId
 
         // Submit if last step
-        if ( nextStepObject[stepIndex].isLast )
+        if ( stepLogicObject[stepIndex].isLast )
         {
             // Turn off keyboard form navigation
             keyEventsAllowed = false
             
             // Remove all steps that are not part of the click record before submitting
-            removeOtherSteps(nextStepObject, clickRecord, $formBlock)
+            removeOtherSteps(stepLogicObject, clickRecord, $formBlock)
 
             // Submit
             performVisualSubmit( $formBlock, $form, devMode )
@@ -225,8 +228,8 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         else
         {
             // Variables
-            let $currentStep = nextStepObject[stepIndex].$
-                $nextStep = nextStepObject[nextStepId].$
+            let $currentStep = stepLogicObject[stepIndex].$
+                $nextStep = stepLogicObject[nextStepId].$
 
             // Functions
 
@@ -243,12 +246,16 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
     
     // - Go to prev step -
-    function goToPrevStep()
+    function goToPrevStep( triggeredBySwipe = false )
     {
         // Variables
         let currentStepId = clickRecord[clickRecord.length -1].step,
             prevStepId = clickRecord[Math.max( clickRecord.length -2, 0 )].step
 
+        // Prevent swipe gestures when turned off on step
+        if ( triggeredBySwipe && stepLogicObject[currentStepId].swipeAllowed.toLowerCase() == 'false' ) { return }
+
+        // Prevent going before first step
         if ( currentStepId != prevStepId )
         {
             // Elements
@@ -266,11 +273,25 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 
     // - Find next -
-    function findNext()
+    function findNext( triggeredBySwipe = false )
     {
+        // get current click record entry
+
+        // Check if swipe gesture is allowed in stepLogicObject
+
+        // find step with that id
+
+        // find button with got clicked attribute
+
+        // Else If not. Play select button 1 with animation and mark button clicked. Return
+
+        // call goToNextStep( currentStepInxed, markedButtonIndex )
+        
+
+        
         // Search last clicked button & click it; If not existent mark first as "clicked" & & check if field is required && mark that first || second time make red error ; visually outline it; when rerurn it  do first action
         
-        console.log('Searching for stepIndex & buttonIndex...')
+        console.log('Searching for stepIndex & buttonIndex...', triggeredBySwipe)
     }
 
     
@@ -310,8 +331,6 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             // Variables
             let key = evt.key.toLowerCase()
 
-            console.log()
-
             if ( escEvent.includes(key) )
             {
                 goToPrevStep()
@@ -320,6 +339,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             {
                 findNext()
             }
+
+            // Set up left, right keyboard controls
+            console.log('Todo: Set up left, right button selection control') // buttonSelectControl( 'left' )
         }
     }
 
@@ -336,59 +358,57 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     // Init all swipe directions
     hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
 
-    console.log(type)
-
     // Variations 
     if ( type == 'false' )
     {
     }
     else if ( type == 'to bottom' )
     {
-        hammer.on('swipeup', goToPrevStep)
-        hammer.on('swipedown', findNext)
+        hammer.on('swipeup', () => { goToPrevStep(true) })
+        hammer.on('swipedown', () => { findNext(true) })
     }
     else if ( type == 'to top' || type == 'vertical' )
     {
-        hammer.on('swipeup', findNext)
-        hammer.on('swipedown', goToPrevStep)
+        hammer.on('swipeup', () => { findNext(true) })
+        hammer.on('swipedown', () => { goToPrevStep(true) })
     }
     else if ( type == 'to left' || type == 'default' || type == 'horizontal' )
     {
-        hammer.on('swipeleft', findNext)
-        hammer.on('swiperight', goToPrevStep)
+        hammer.on('swipeleft', () => { findNext(true) })
+        hammer.on('swiperight', () => { goToPrevStep(true) })
     }
     else if ( type == 'to right' )
     {
-        hammer.on('swipeleft', goToPrevStep)
-        hammer.on('swiperight', findNext)
+        hammer.on('swipeleft', () => { goToPrevStep(true) })
+        hammer.on('swiperight', () => { findNext(true) })
     }
     else if ( type == '4' || type == '270°' )
     {
-        hammer.on('swipeup', goToPrevStep)
-        hammer.on('swipeleft', findNext)
-        hammer.on('swiperight', findNext)
-        hammer.on('swipedown', goToPrevStep)
+        hammer.on('swipeup', () => { goToPrevStep(true) })
+        hammer.on('swipeleft', () => { findNext(true) })
+        hammer.on('swiperight', () => { findNext(true) })
+        hammer.on('swipedown', () => { goToPrevStep(true) })
     }
     else if ( type == '3' || type == '180°' )
     {
-        hammer.on('swipeup', goToPrevStep)
-        hammer.on('swipeleft', findNext)
-        hammer.on('swiperight', findNext)
-        hammer.on('swipedown', goToPrevStep)
+        hammer.on('swipeup', () => { goToPrevStep(true) })
+        hammer.on('swipeleft', () => { findNext(true) })
+        hammer.on('swiperight', () => { findNext(true) })
+        hammer.on('swipedown', () => { goToPrevStep(true) })
     }
     else if ( type == '2' || type == '90°' )
     {
-        hammer.on('swipeup', goToPrevStep)
-        hammer.on('swipeleft', findNext)
-        hammer.on('swiperight', findNext)
-        hammer.on('swipedown', goToPrevStep)
+        hammer.on('swipeup', () => { goToPrevStep(true) })
+        hammer.on('swipeleft', () => { findNext(true) })
+        hammer.on('swiperight', () => { findNext(true) })
+        hammer.on('swipedown', () => { goToPrevStep(true) })
     }
     else // == 'none' || 1 || 'standard' || 0°
     {
-        hammer.on('swipeup', findNext)
-        hammer.on('swipeleft', findNext)
-        hammer.on('swiperight', goToPrevStep)
-        hammer.on('swipedown', goToPrevStep)
+        hammer.on('swipeup', () => { findNext(true) })
+        hammer.on('swipeleft', () => { findNext(true) })
+        hammer.on('swiperight', () => { goToPrevStep(true) })
+        hammer.on('swipedown', () => { goToPrevStep(true) })
     }
 }) }
 
@@ -418,7 +438,7 @@ function defineSwipeType( $element )
         minScreenSize = styles['minSwipeScreenSize'],
         width = $(window).width()
 
-    slideDirection = 'to top'
+    // slideDirection = 'to top'
 
     // Logic: Tell DOM the swipe type
     if ( width <= maxScreenSize && width >= minScreenSize)
@@ -449,6 +469,8 @@ function performVisualSubmit( $formBlock, $form, devMode = 0 )
         console.log(`Dev mode ${ devMode }: Perform fake submit...`)
     }
 
+    console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
+
     // Animation
     $form.hide()
     $formBlock.find(successSelector).show()
@@ -476,7 +498,9 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         tl = new gsap.timeline(),
         resizeHeight1 = $currentStep.height(),
         resizeHeight2 = $nextStep.height(),
-        isEqualHeight = resizeHeight1 == resizeHeight2
+        isEqualHeight = resizeHeight1 == resizeHeight2,
+        speedMultiplier = isEqualHeight ? styles['equalHeightTransitionSpeedMultiplier'] : 1
+        speedMultiplierString = `<+=${ speedMultiplier * 100 }%`,
         isReverse = parseInt( $currentStep.attr(stepIndexAttribute) ) > parseInt( $nextStep.attr(stepIndexAttribute) ),
         slideDirection = styles['slideDirection'].toLowerCase(),
         autoResizeTime1 = cssShow['duration'],
@@ -484,7 +508,7 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
 
-    slideDirection = 'to top'
+    // slideDirection = 'to top'
 
 
     // - Depending on slide Direction animate: -
@@ -503,13 +527,13 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         {
             // Local functions
             tl.to($currentStep[0], toBottom)
-            tl.fromTo($nextStep[0], toTopQuick, fromTop)
+            tl.fromTo($nextStep[0], toTopQuick, fromTop, speedMultiplierString)
         }
         else
         {
             // Local functions
             tl.to($currentStep[0], toTop)
-            tl.fromTo($nextStep[0], toBottomQuick, fromBottom)
+            tl.fromTo($nextStep[0], toBottomQuick, fromBottom, speedMultiplierString)
         }
     }
     else if ( slideDirection == 'to top' ) // Bottom to top
@@ -527,13 +551,13 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         {
             // Local functions
             tl.to($currentStep[0], toTop)
-            tl.fromTo($nextStep[0], toBottomQuick, fromBottom)
+            tl.fromTo($nextStep[0], toBottomQuick, fromBottom, speedMultiplierString)
         }
         else
         {
             // Local functions
             tl.to($currentStep[0], toBottom)
-            tl.fromTo($nextStep[0], toTopQuick, fromTop)
+            tl.fromTo($nextStep[0], toTopQuick, fromTop, speedMultiplierString)
         }
     }
     else if ( slideDirection == 'to left' || slideDirection == 'default' ) // Right to left
@@ -553,13 +577,13 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         {
             // Local functions
             tl.to($currentStep[0], toLeft)
-            tl.fromTo($nextStep[0], toRigthQuick, fromRigth)
+            tl.fromTo($nextStep[0], toRigthQuick, fromRigth, speedMultiplierString)
         }
         else
         {
             // Local functions
             tl.to($currentStep[0], toRigth)
-            tl.fromTo($nextStep[0], toLeftQuick, fromLeft)
+            tl.fromTo($nextStep[0], toLeftQuick, fromLeft, speedMultiplierString)
         }
     }
     else if ( slideDirection == 'to right' ) // Left to right
@@ -577,13 +601,13 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         {
             // Local functions
             tl.to($currentStep[0], toRigth)
-            tl.fromTo($nextStep[0], toLeftQuick, fromLeft)
+            tl.fromTo($nextStep[0], toLeftQuick, fromLeft, speedMultiplierString)
         }
         else
         {
             // Local functions
             tl.to($currentStep[0], toLeft)
-            tl.fromTo($nextStep[0], toRigthQuick, fromRigth)
+            tl.fromTo($nextStep[0], toRigthQuick, fromRigth, speedMultiplierString)
         }
     }
     else if ( slideDirection == 'none' ) // None
@@ -627,7 +651,7 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 
             // Local functions
             tl.to($currentStep[0], customNextSlideOut)
-            tl.fromTo($nextStep[0], customPrevSlideOutQuick, customNextSlideIn)
+            tl.fromTo($nextStep[0], customPrevSlideOutQuick, customNextSlideIn, speedMultiplierString)
         }
         else
         {
@@ -637,7 +661,7 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 
             // Local functions
             tl.to($currentStep[0], customPrevSlideOut)
-            tl.fromTo($nextStep[0], customNextSlideOutQuick, customPrevSlideIn)
+            tl.fromTo($nextStep[0], customNextSlideOutQuick, customPrevSlideIn, speedMultiplierString)
         }
     }
 
@@ -729,6 +753,7 @@ function creatNextStepObject( $steps )
         {
             $: $step,
             step: stepIndex,
+            swipeAllowed: $step.attr(swipeAllowedAttribute) || 'true',
             conditional: $step.attr(conditionalAttribute),
             conditionalNext: $step.attr(conditionalNextAttribute),
             buttons: buttonsObject
@@ -801,6 +826,7 @@ function populateStylesObject( $element )
     stylesObject.push(
     {
         animationMsTime: parseFloat( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
+        equalHeightTransitionSpeedMultiplier: parseFloat( $element.attr(equalHeightTransitionSpeedMultiplierAttribute) || equalHeightTransitionSpeedMultiplierDefault ),
         cssShow: getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ),
         cssHide: getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ),
         cssActive: getJsonAttrVals( $element, cssActiveAttribute, cssActiveDefault ),
