@@ -232,6 +232,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             // Remove all steps that are not part of the click record before submitting
             removeOtherSteps(stepLogicObject, clickRecord, $formBlock)
 
+            // Initialize quiz mode
+            initQuizMode( $formBlock, clickRecord )
+
             // Submit
             performVisualSubmit( $formBlock, $form, devMode )
         }
@@ -436,6 +439,14 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 // + Helper functions +
 
+// - - Initialize Quizmode --
+function initQuizMode( $formBlock, clickRecord )
+{
+    // Continues logic. TODO:
+    console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
+}
+
+
 // - - Initialize Mobile Swipe gestures - -
 function defineSwipeType( $element )
 {
@@ -478,8 +489,6 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
         multiplier2 = styles['autoResizeTimeMultiplier2'],
         tl = new gsap.timeline()
 
-    console.log(resizeHeight2, resizeHeight1)
-
     // Dev mode logic
     if ( devMode < 1 ) // If dev mode is half or higher, do not:
     {
@@ -490,6 +499,7 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
         console.log(`Dev mode ${ devMode }: Perform fake submit...`)
     }
 
+    
     // - GSAP animations -
 
     // Animate submission transition
@@ -506,10 +516,6 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
         gsap.set($formBlock[0], { height: resizeHeight1 })
         gsap.to($formBlock[0], { height: resizeHeight2, duration: time2 * multiplier2 }).delay(time1)
     }
-
-
-    // Continues logic. TODO:
-    console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
 }
 
 
@@ -908,8 +914,8 @@ function populateStylesObject( $element )
     styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, submitHideDefault )
     styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, submitShowDefault )
 
-    if (styles['submitHide'] == undefined) { style['duration'] = styles['submitMsTime1'] / 1000 }
-    if (styles['submitShow'] == undefined) { style['duration'] = styles['submitMsTime2'] / 1000 }
+    if (styles['submitHide']['duration'] == undefined) { styles['duration'] = styles['submitMsTime1'] / 1000 }
+    if (styles['submitShow']['duration'] == undefined) { styles['duration'] = styles['submitMsTime2'] / 1000 }
 }
 
 
