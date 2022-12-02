@@ -942,6 +942,9 @@ function defineStepType( $step, stepIndex, $formBlock )
         $step.attr(stepTypeAttribute, 'radio')
         initActiveInactiveClickState( $radios, formBlockIndex, $step )
 
+        // Make sure to remove accidental radio requires
+        $radios.find('input').removeAttr('required')
+
         return $step.attr( notAutoContinueAttribute ) != undefined ? $buttons : $radios
     }
 
