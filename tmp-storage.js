@@ -1,3 +1,5 @@
+
+﻿
 /* Start of: BMG - Universal multistep forms script */
 
 // + Global strings +
@@ -39,7 +41,8 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     leftEventAttribute = 'bmg-data-left-event',
     rigthEventAttribute = 'bmg-data-rigth-event',
     devModeAttribute = 'bmg-data-dev-mode',
-    swipeAllowedAttribute = 'bmg-data-swipe-allowed'
+    swipeAllowedAttribute = 'bmg-data-swipe-allowed',
+    quizPathAttribute = 'bmg-data-quiz-path'
 
 // Functional defaults
 const escEventDefault = 'escape, esc, arrowup, up',
@@ -442,8 +445,19 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 // - - Initialize Quizmode --
 function initQuizMode( $formBlock, clickRecord )
 {
-    // Continues logic. TODO:
-    console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
+    // Local elements
+    let $success = $formBlock.find(successSelector),
+        $results = $success.find(quizResultSelector)
+
+    // Run only if active
+    if ( $results.length > 0 )
+    {
+        // Local variables
+        let hasNested, isUrl, hasUrlTimeElement
+
+        // Continues logic. TODO:
+        console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
+    }
 }
 
 
