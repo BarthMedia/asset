@@ -134,7 +134,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         keyEventsAllowed = true
 
     // Glocal attributes
-    let devMode = returnDevModeIndex( $formBlock ) // attr.(dev mode attribute)
+    let devMode = returnDevModeIndex( $formBlock )
 
     
     // - Styling -
@@ -143,7 +143,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     populateStylesObject( $formBlock )
 
     // Delete visual dividers
-    if ( devMode < 2 ) // If dev mode is on or higher, do not:
+    if ( devMode < 3 ) // If dev mode is 200% or higher, do not:
     {
         $form.find(dividerSelctor).remove()
         $steps.hide()
@@ -241,7 +241,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         }
 
         // Dev mode
-        if ( devMode > 0 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
+        if ( devMode > 1 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
 
     
@@ -268,7 +268,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         }
 
         // Dev mode
-        if ( devMode > 0 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
+        if ( devMode > 1 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
 
 
@@ -438,8 +438,6 @@ function defineSwipeType( $element )
         minScreenSize = styles['minSwipeScreenSize'],
         width = $(window).width()
 
-    // slideDirection = 'to top'
-
     // Logic: Tell DOM the swipe type
     if ( width <= maxScreenSize && width >= minScreenSize)
     {
@@ -508,7 +506,8 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
 
-    // slideDirection = 'to top'
+    // Log speed multiplier info if dev mode = true 
+    if ( devMode >= 2 ) { console.log(`Dev mode ${ devMode }; GSAP transition speed multiplier string: ${ speedMultiplierString }`) }
 
 
     // - Depending on slide Direction animate: -
@@ -569,8 +568,6 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
             fromRigth = { ...cssShow, x: 0 },
             toRigth = { ...cssHide, x: $form.width() },
             toRigthQuick = { ...toRigth, duration: 0 }
-
-        console.log(isEqualHeight + ' - height of slides is euqal ... or not.')
 
         // Local logic
         if ( !isReverse )
