@@ -181,10 +181,12 @@ function main()
             if ( thisSlideIsCurrent <= 0 )
             {
                 gsap.to( $left[0], cssHide )
+                if ( lastSrollableSlideIndex > 0 ) { gsap.to( $right[0], cssShow ) }
             }
             else if ( thisSlideIsCurrent >= lastSrollableSlideIndex )
             {
                 gsap.to( $right[0], cssHide )
+                if ( lastSrollableSlideIndex > 0 ) { gsap.to( $left[0], cssShow ) }
             }
             else
             {
