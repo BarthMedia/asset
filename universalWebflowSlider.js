@@ -14,6 +14,7 @@ const sliderSelctor = '[bmg-uwsc = "Slider"]',
 const snappingAttribute = 'bmg-data-snapping',
     snappingDelayAttribute = 'bmg-data-snapping-delay',
     snapCallMultiplierAttribute = 'bmg-data-snap-call-multiplier',
+    snapLastItemScreenSizeAttribute = 'bmg-data-last-item-snap-screen-size',
     autoCreateDotsAttribute = 'bmg-data-auto-create-dots',
     animationTimeAttribute = 'bmg-uwsc-animation-time',
     cssShowAttribute = 'bmg-data-css-show',
@@ -23,6 +24,7 @@ const snappingAttribute = 'bmg-data-snapping',
 const snappingDefault = 'true',
     snappingDelayDefault = 150,
     snapCallMultiplierDefault = .5,
+    snapLastItemScreenSizeDefault = 479,
     animationTimeDefault = 350,
     cssShowDefault = { opacity: 1, cursor: 'pointer' },
     cssHideDefault = { opacity: 0.5, cursor: 'default' }
@@ -49,6 +51,7 @@ function main()
         let isSnapping = $slider.attr(snappingAttribute) || snappingDefault,
             snappingDelay = parseFloat( $slider.attr( snappingDelayAttribute ) || snappingDelayDefault ),
             snapCallMultiplier = parseFloat( $slider.attr( snapCallMultiplierAttribute ) || snapCallMultiplierDefault ),
+            snapLastItemScreenSize = parseFloat( $slider.attr( snapLastItemScreenSizeAttribute ) || snapLastItemScreenSizeDefault )
             animationTime = parseFloat( $slider.attr( animationTimeAttribute ) || animationTimeDefault ),
             cssShow = getJsonAttrVals( $slider, cssShowAttribute, { ...cssShowDefault } ),
             cssHide = getJsonAttrVals( $slider, cssHideAttribute, { ...cssHideDefault } )
@@ -70,7 +73,8 @@ function main()
             paddingRight,
             contentWidth,
             gapValue,
-            animationTriggerType
+            animationTriggerType,
+            screenSize
 
 
         // - - - Styling - - - 
@@ -97,6 +101,8 @@ function main()
         // - - Create calc values - on resize - -
         function createCalcValues()
         { 
+            // - Screen size -
+            screenSize = $(window).width()
             // - Populate slide widths -
             
             // Reset
@@ -199,7 +205,7 @@ function main()
                 clearTimeout(snapTimeOutVarialbe)
 
                 // Set
-                if ( thisSlideIsCurrent < lastSrollableSlideIndex ) 
+                if ( screenSize <= snapLastItemScreenSize || thisSlideIsCurrent < lastSrollableSlideIndex ) 
                 {
                     snapTimeOutVarialbe = setTimeout(() => 
                     {
