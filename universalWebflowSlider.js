@@ -13,7 +13,7 @@ const sliderSelctor = '[bmg-uwsc = "Slider"]',
 // Attributes
 const snappingAttribute = 'bmg-data-snapping',
     snappingDelayAttribute = 'bmg-data-snapping-delay',
-    snapCallMultiplierAttribute = 'bmg-data-snap-call-multiplier'
+    snapCallMultiplierAttribute = 'bmg-data-snap-call-multiplier',
     autoCreateDotsAttribute = 'bmg-data-auto-create-dots',
     animationTimeAttribute = 'bmg-uwsc-animation-time',
     cssShowAttribute = 'bmg-data-css-show',
@@ -22,7 +22,7 @@ const snappingAttribute = 'bmg-data-snapping',
 // Defaults
 const snappingDefault = 'true',
     snappingDelayDefault = 150,
-    snapCallMultiplierDefault = .5
+    snapCallMultiplierDefault = .5,
     animationTimeDefault = 350,
     cssShowDefault = { opacity: 1, cursor: 'pointer' },
     cssHideDefault = { opacity: 0.5, cursor: 'default' }
