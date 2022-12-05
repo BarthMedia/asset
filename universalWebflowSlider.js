@@ -38,7 +38,7 @@ function main()
         // - Elements -
         let $slider = $(this),
             $mask = $slider.find(maskSelector),
-            $slides = $mask.children().not(notASlideSelector)
+            $slides = $mask.children().not(notASlideSelector),
             $left = $slider.find(leftSelector),
             $right = $slider.find(rightSelector),
             $nav = $slider.find(navSelector),
