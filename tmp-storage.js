@@ -56,15 +56,15 @@ const devModeObject = [
     },
     {
         names: ['half', '50%'],
-        value: 1
+        value: .5
     },
     {
         names: ['on', 'true', '100%'],
-        value: 2
+        value: 1
     },
     {
         names: ['extreme', '200%'],
-        value: 3
+        value: 2
     }]
 
     
@@ -158,7 +158,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     populateStylesObject( $formBlock )
 
     // Delete visual dividers
-    if ( devMode < 3 ) // If dev mode is 200% or higher, do not:
+    if ( devMode < 2 ) // If dev mode is 200% or higher, do not:
     {
         $form.find(dividerSelctor).remove()
         $steps.hide()
@@ -210,7 +210,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
                     // Call function
                     markClickElement( $buttons, $button )
-                    goToNextStep( stepIndex, buttonIndex )
+                    findNext()
                 }
             
             preventDoubleClick = true
@@ -259,7 +259,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         }
 
         // Dev mode
-        if ( devMode > 1 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
+        if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
 
     
@@ -286,30 +286,34 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         }
 
         // Dev mode
-        if ( devMode > 1 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
+        if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
 
 
     // - Find next -
     function findNext( triggeredBySwipe = false )
     {
-        // get current click record entry
+        // Variables
+        let currentStepId = clickRecord[clickRecord.length -1].step, // Get current click record entry
+            object = stepLogicObject[currentStepId]
 
-        // Check if swipe gesture is allowed in stepLogicObject
+        // Prevent swipe gestures when turned off on step
+        if ( triggeredBySwipe && object.swipeAllowed.toLowerCase() == 'false' ) { return } // Check if swipe gesture is allowed in stepLogicObject
 
-        // find step with that id
+        // Elements
+        let $currentStep = object.$, // find step with that id
+            $clickedButton = $currentStep.find(`[${ markClickElementAttribute } = "true"]`), // find button with got clicked attribute
+            clickedButtonId = $clickedButton.attr(clickElementIdAttribute)
 
-        // find button with got clicked attribute
-
-        // Else If not. Play select button 1 with animation and mark button clicked. Return
-
-        // call goToNextStep( currentStepInxed, markedButtonIndex )
-        
-
-        
-        // Search last clicked button & click it; If not existent mark first as "clicked" & & check if field is required && mark that first || second time make red error ; visually outline it; when rerurn it  do first action
-        
-        console.log('Searching for stepIndex & buttonIndex...', triggeredBySwipe)
+        if ( $clickedButton.length == 1 )
+        {
+            goToNextStep( currentStepId, clickedButtonId )
+        }
+        else // If clicked button length not 1 fire click function / event on button. Or fire select function and mark as clicked
+        {
+            // Else If not. Play select button 1 with animation and mark button clicked. Return
+            console.log("TODO: Select the first button animation.") 
+        }
     }
 
     
@@ -507,7 +511,7 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
         resizeTl = new gsap.timeline()
 
     // Dev mode logic
-    if ( devMode < 1 ) // If dev mode is half or higher, do not:
+    if ( devMode < .5 ) // If dev mode is half or higher, do not:
     {
         setTimeout( $form.submit(), time1 * 1000 )
     }
@@ -546,7 +550,7 @@ let timeLineStorage = false
 function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 {
     // Turn off animations on extreme dev mode
-    if ( devMode >= 3 ) { console.log(`Dev mode ${ devMode }: Block the transition animation...`); return }
+    if ( devMode >= 2 ) { console.log(`Dev mode ${ devMode }: Block the transition animation...`); return }
     
     // - Local variables -
     let $otherElements = $form.find(`[${ stepIndexAttribute }]`).not( $currentStep ).not( $nextStep ),
