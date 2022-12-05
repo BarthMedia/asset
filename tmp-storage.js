@@ -307,6 +307,10 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
         if ( $clickedButton.length == 1 )
         {
+            console.log("TODO: Implement required checking.")
+
+            // if ( stepRequirementsPassed( $formBlock, $currentStep ) ) { // Remove error styling and Go to next step / Else the function will mark the error }
+            
             goToNextStep( currentStepId, clickedButtonId )
         }
         else // If clicked button length not 1 fire click function / event on button. Or fire select function and mark as clicked
