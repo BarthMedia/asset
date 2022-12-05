@@ -69,7 +69,8 @@ function main()
             paddingLeft,
             paddingRight,
             contentWidth,
-            gapValue
+            gapValue,
+            animationTriggerType
 
 
         // - - - Styling - - - 
@@ -202,6 +203,7 @@ function main()
                 {
                     snapTimeOutVarialbe = setTimeout(() => 
                     {
+                        animationTriggerType = 'snap'
                         scrollToItem( thisSlideIsCurrent, snapCallMultiplier )
                     }, snappingDelay)
                 }
@@ -210,18 +212,25 @@ function main()
 
 
         // - - Click events - -
+        let fastClickItterateInt = 0
 
         // - Buttons -
         $left.click(() => 
         {
-            if ( thisSlideIsCurrent > 0 ) { thisSlideIsCurrent-- }
-            scrollToItem( thisSlideIsCurrent )
+            if ( animationTriggerType != 'button' ) { fastClickItterateInt = thisSlideIsCurrent }
+            if ( fastClickItterateInt > 0 ) { fastClickItterateInt-- }
+
+            animationTriggerType = 'button'
+            scrollToItem( fastClickItterateInt )
         })
 
         $right.click(() => 
         {
-            if ( thisSlideIsCurrent < lastSrollableSlideIndex ) { thisSlideIsCurrent++ }
-            scrollToItem( thisSlideIsCurrent )
+            if ( animationTriggerType != 'button' ) { fastClickItterateInt = thisSlideIsCurrent }
+            if ( fastClickItterateInt < lastSrollableSlideIndex ) { fastClickItterateInt++ }
+
+            animationTriggerType = 'button'
+            scrollToItem( fastClickItterateInt )
         })
 
         // - dots -
@@ -229,6 +238,7 @@ function main()
         {
             $(this).click(() => 
             {
+                animationTriggerType = 'dot'
                 scrollToItem( index )
             })
         })
