@@ -218,19 +218,23 @@ function main()
         $left.click(() => 
         {
             if ( animationTriggerType != 'button' ) { fastClickItterateInt = thisSlideIsCurrent }
-            if ( fastClickItterateInt > 0 ) { fastClickItterateInt-- }
+            fastClickItterateInt-- 
+            
+            if ( fastClickItterateInt >= 0 ) { scrollToItem( fastClickItterateInt ) }
+            else { fastClickItterateInt = 0 }
 
             animationTriggerType = 'button'
-            scrollToItem( fastClickItterateInt )
         })
 
         $right.click(() => 
         {
             if ( animationTriggerType != 'button' ) { fastClickItterateInt = thisSlideIsCurrent }
-            if ( fastClickItterateInt < lastSrollableSlideIndex ) { fastClickItterateInt++ }
+            fastClickItterateInt++
+            
+            if ( fastClickItterateInt <= lastSrollableSlideIndex ) { scrollToItem( fastClickItterateInt ) }
+            else { fastClickItterateInt = lastSrollableSlideIndex }
 
             animationTriggerType = 'button'
-            scrollToItem( fastClickItterateInt )
         })
 
         // - dots -
