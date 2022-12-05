@@ -13,6 +13,7 @@ const sliderSelctor = '[bmg-uwsc = "Slider"]',
 // Attributes
 const snappingAttribute = 'bmg-data-snapping',
     snappingDelayAttribute = 'bmg-data-snapping-delay',
+    snapCallMultiplierAttribute = 'bmg-data-snap-call-multiplier'
     autoCreateDotsAttribute = 'bmg-data-auto-create-dots',
     animationTimeAttribute = 'bmg-uwsc-animation-time',
     cssShowAttribute = 'bmg-data-css-show',
@@ -20,7 +21,8 @@ const snappingAttribute = 'bmg-data-snapping',
 
 // Defaults
 const snappingDefault = 'true',
-    snappingDelayDefault = 420,
+    snappingDelayDefault = 150,
+    snapCallMultiplierDefault = .5
     animationTimeDefault = 350,
     cssShowDefault = { opacity: 1, cursor: 'pointer' },
     cssHideDefault = { opacity: 0.5, cursor: 'default' }
@@ -46,6 +48,7 @@ function main()
         // - Attributes -
         let isSnapping = $slider.attr(snappingAttribute) || snappingDefault,
             snappingDelay = parseFloat( $slider.attr( snappingDelayAttribute ) || snappingDelayDefault ),
+            snapCallMultiplier = parseFloat( $slider.attr( snapCallMultiplierAttribute ) || snapCallMultiplierDefault ),
             animationTime = parseFloat( $slider.attr( animationTimeAttribute ) || animationTimeDefault ),
             cssShow = getJsonAttrVals( $slider, cssShowAttribute, { ...cssShowDefault } ),
             cssHide = getJsonAttrVals( $slider, cssHideAttribute, { ...cssHideDefault } )
@@ -199,7 +202,7 @@ function main()
                 {
                     snapTimeOutVarialbe = setTimeout(() => 
                     {
-                        scrollToItem( thisSlideIsCurrent )
+                        scrollToItem( thisSlideIsCurrent, snapCallMultiplier )
                     }, snappingDelay)
                 }
             }
@@ -232,13 +235,13 @@ function main()
 
 
         // - - Scroll to item x - -
-        function scrollToItem( x )
+        function scrollToItem( x, snapCallMultiplierValue = 1 )
         {
             // Prevent double snapping
             clearTimeout(snapTimeOutVarialbe)
             
             // Animate
-            $mask.stop().animate( { scrollLeft: slideWidthElement[x].joint }, animationTime )
+            $mask.stop().animate( { scrollLeft: slideWidthElement[x].joint }, animationTime * snapCallMultiplierValue )
         }
     })
 }
