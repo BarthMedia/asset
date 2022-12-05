@@ -1,5 +1,3 @@
-
-﻿
 /* Start of: BMG - Universal multistep forms script */
 
 // + Global strings +
@@ -87,6 +85,8 @@ const cssShowAttribute = 'bmg-data-css-show',
     customYMultiplierAttribute = 'bmg-data-custom-y-percentage-multiplier',
     autoResizeTimeMultiplier1Attribute = 'bmg-data-auto-resize-time-multiplier-1',
     autoResizeTimeMultiplier2Attribute = 'bmg-data-auto-resize-time-multiplier-2',
+    autoResizeSuccessTimeMultiplier1Attribute = 'bmg-data-auto-resize-time-multiplier-1',
+    autoResizeSuccessTimeMultiplier2Attribute = 'bmg-data-auto-resize-time-multiplier-2',
     maxSwipeScreenSizeAttribute = 'bmg-data-max-swipe-screen-size',
     minSwipeScreenSizeAttribute = 'bmg-data-min-swipe-screen-size',
     swipeTypeAnimationAttribute = 'bmg-data-swipe-type-animation',
@@ -112,6 +112,8 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     customYMultiplierDefault = 0,
     autoResizeTimeMultiplier1Default = 1,
     autoResizeTimeMultiplier2Default = .5,
+    autoResizeSuccessTimeMultiplier1Default = 1,
+    autoResizeSuccessTimeMultiplier2Default = .85,
     maxSwipeScreenSizeDefault = 767,
     minSwipeScreenSizeDefault = 0,
     submitShowDefault = { ...cssShowDefault },
@@ -499,9 +501,10 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
         submitShow = styles['submitShow'],
         resizeHeight1 = $form.outerHeight( true ),
         resizeHeight2 = $success.outerHeight( true ),
-        multiplier1 = styles['autoResizeTimeMultiplier1'],
-        multiplier2 = styles['autoResizeTimeMultiplier2'],
-        tl = new gsap.timeline()
+        multiplier1 = styles['autoResizeSuccessTimeMultiplier1'],
+        multiplier2 = styles['autoResizeSuccessTimeMultiplier2'],
+        tl = new gsap.timeline(),
+        resizeTl = new gsap.timeline()
 
     // Dev mode logic
     if ( devMode < 1 ) // If dev mode is half or higher, do not:
@@ -523,13 +526,14 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
     // Change frame height smoothly
     if ( resizeHeight2 >= resizeHeight1 )
     {
-        gsap.to($formBlock[0], { height: resizeHeight2, duration: time1 * multiplier1 })
+        resizeTl.to($formBlock[0], { height: resizeHeight2, duration: time1 * multiplier1 })
     }
     else
     {
-        gsap.set($formBlock[0], { height: resizeHeight1 })
-        gsap.to($formBlock[0], { height: resizeHeight2, duration: time2 * multiplier2 }).delay(time1)
+        resizeTl.set($formBlock[0], { height: resizeHeight1 })
+        resizeTl.to($formBlock[0], { height: resizeHeight2, duration: time2 * multiplier2 }).delay(time1)
     }
+    resizeTl.set($formBlock[0], { height: 'auto' })
 }
 
 
@@ -882,8 +886,8 @@ function populateStylesObject( $element )
     {
         animationMsTime: parseFloat( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
         equalHeightTransitionSpeedMultiplier: parseFloat( $element.attr(equalHeightTransitionSpeedMultiplierAttribute) || equalHeightTransitionSpeedMultiplierDefault ),
-        cssShow: getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ),
-        cssHide: getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ),
+        cssShow: { ...getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ) },
+        cssHide: { ...getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ) },
         cssActive: getJsonAttrVals( $element, cssActiveAttribute, cssActiveDefault ),
         cssInactive: getJsonAttrVals( $element, cssInactiveAttribute, cssInactiveDefault ),
         errorColor: $element.attr(errorColorAttribute) || errorColorDefault,
@@ -896,6 +900,8 @@ function populateStylesObject( $element )
         customYMultiplier: parseFloat( $element.attr(customYMultiplierAttribute) || customYMultiplierDefault ),
         autoResizeTimeMultiplier1: parseFloat( $element.attr(autoResizeTimeMultiplier1Attribute) || autoResizeTimeMultiplier1Default ),
         autoResizeTimeMultiplier2: parseFloat( $element.attr(autoResizeTimeMultiplier2Attribute) || autoResizeTimeMultiplier2Default ),
+        autoResizeSuccessTimeMultiplier1: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier1Attribute) || autoResizeSuccessTimeMultiplier1Default ),
+        autoResizeSuccessTimeMultiplier2: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier2Attribute) || autoResizeSuccessTimeMultiplier2Default ),
         maxSwipeScreenSize: parseInt( $element.attr(maxSwipeScreenSizeAttribute) || maxSwipeScreenSizeDefault ),
         minSwipeScreenSize: parseInt( $element.attr(minSwipeScreenSizeAttribute) || minSwipeScreenSizeDefault )
     })
