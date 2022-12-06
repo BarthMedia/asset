@@ -73,6 +73,7 @@ const cssShowAttribute = 'bmg-data-css-show',
     cssHideAttribute = 'bmg-data-css-hide',
     cssActiveAttribute = 'bmg-data-css-active',
     cssInactiveAttribute = 'bmg-data-css-inactive',
+    setCssInactiveAttribute = 'bmg-data-set-css-inactive',
     cssSelectAttribute = 'bmg-data-css-select',
     cssDeselectAttribute = 'bmg-data-css-deselect',
     animationMsTimeAttribute = 'bmg-data-animation-ms-time',
@@ -973,6 +974,10 @@ function populateStylesObject( $element )
     if (styles['submitHide']['duration'] == undefined) { styles['duration'] = styles['submitMsTime1'] / 1000 }
     if (styles['submitShow']['duration'] == undefined) { styles['duration'] = styles['submitMsTime2'] / 1000 }
 
+    // Set css inactive
+    styles['setCssInactive'] = getJsonAttrVals( $element, setCssInactiveAttribute, cssInactive )
+    delete styles['setCssInactive'].duration
+
     // Select / Deselect
     styles['cssSelect'] = getJsonAttrVals( $element, cssSelectAttribute, cssActive )
     styles['cssDeselect'] = getJsonAttrVals( $element, cssDeselectAttribute, cssInactive )
@@ -983,15 +988,15 @@ function populateStylesObject( $element )
 function initActiveInactiveClickState( $elements, styleObjectIndex, $parent )
 {
     // Local variables
-    let cssActive = stylesObject[styleObjectIndex]['cssActive'],
-        cssInactive = stylesObject[styleObjectIndex]['cssInactive'],
-        cssInactiveQuick = { ...cssInactive, duration: 0 },
+    let styles = stylesObject[styleObjectIndex],
+        cssActive = styles['cssActive'],
+        cssInactive = styles['cssInactive'],
+        cssInactiveSet = styles['setCssInactive'],
         isRadio = $parent.attr(stepTypeAttribute) == 'radio' ? true : false,
         elements = jqueryToJs( $elements )
     
-
     // Functions
-    gsap.set( elements, cssInactiveQuick ) // Init
+    $elements.css( cssInactiveSet ) // Init
     
     if ( isRadio )
     {
