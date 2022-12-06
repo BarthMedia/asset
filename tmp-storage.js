@@ -1,5 +1,3 @@
-
-﻿
 /* Start of: BMG - Universal multistep forms script */
 
 // + Global strings +
