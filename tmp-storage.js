@@ -1,3 +1,5 @@
+
+﻿
 /* Start of: BMG - Universal multistep forms script */
 
 // + Global strings +
@@ -73,6 +75,8 @@ const cssShowAttribute = 'bmg-data-css-show',
     cssHideAttribute = 'bmg-data-css-hide',
     cssActiveAttribute = 'bmg-data-css-active',
     cssInactiveAttribute = 'bmg-data-css-inactive',
+    cssSelectAttribute = 'bmg-data-css-select',
+    cssDeselectAttribute = 'bmg-data-css-deselect',
     animationMsTimeAttribute = 'bmg-data-animation-ms-time',
     equalHeightTransitionSpeedMultiplierAttribute = 'bmg-data-equal-height-transition-speed-multiplier',
     errorColorAttribute = 'bmg-data-error-color',
@@ -98,8 +102,8 @@ const cssShowAttribute = 'bmg-data-css-show',
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
     cssHideDefault = { opacity: 0, display: 'none' },
-    cssActiveDefault = { opacity: 1 },
-    cssInactiveDefault = { opacity: .5 },
+    cssActiveDefault = { opacity: 1, duration: .1 },
+    cssInactiveDefault = { opacity: .5, duration: .1 },
     animationMsTimeDefault = 500,
     equalHeightTransitionSpeedMultiplierDefault = 0.25,
     errorColorDefault = 'red',
@@ -303,18 +307,18 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             $clickedButton = $currentStep.find(`[${ markClickElementAttribute } = "true"]`), // find button with got clicked attribute
             clickedButtonId = $clickedButton.attr(clickElementIdAttribute)
 
+        // Logic
         if ( $clickedButton.length == 1 )
         {
             console.log("TODO: Implement required checking.")
 
-            // if ( stepRequirementsPassed( $formBlock, $currentStep ) ) { // Remove error styling and Go to next step / Else the function will mark the error }
+            // if ( stepRequirementsPassed( $formBlock, $currentStep ) ) { // Remove error styling and Go to next step / Else the function will mark the error }
             
             goToNextStep( currentStepId, clickedButtonId )
         }
-        else // If clicked button length not 1 fire click function / event on button. Or fire select function and mark as clicked
+        else
         {
-            // Else If not. Play select button 1 with animation and mark button clicked. Return
-            console.log("TODO: Select the first button animation.") 
+            selectButton( 0, $currentStep, $formBlock )
         }
     }
 
@@ -450,7 +454,29 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 // + Helper functions +
 
-// - - Initialize Quizmode --
+// - - Select button x - -
+function selectButton( x, $step, $formBlock )
+{
+    // Styles
+    let styleObjectIndex = parseInt( $formBlock.attr(formBlockindexAttribute) ),
+        styles = stylesObject[styleObjectIndex],
+        cssDeselect = styles['cssDeselect'],
+        cssSelect = styles['cssSelect']
+        
+    
+    // Elements
+    let $buttons = $step.find(`[${ clickElementIdAttribute }]`),
+        buttons = jqueryToJs( $buttons )
+        $button = $step.find(`[${ clickElementIdAttribute } = ${ x }]`)
+
+    // Actions
+    markClickElement( $buttons, $button )
+    gsap.to( buttons, cssDeselect )
+    gsap.to( $button[0], cssSelect )
+}
+
+
+// - - Initialize Quizmode - -
 function initQuizMode( $formBlock, clickRecord )
 {
     // Local elements
@@ -918,6 +944,8 @@ function populateStylesObject( $element )
     let styles = stylesObject[stylesObject.length -1],
         cssShow = styles['cssShow'],
         cssHide = styles['cssHide'],
+        cssActive = styles['cssActive'],
+        cssInactive = styles['cssInactive'],
         customNextSlideIn = styles['customNextSlideIn'],
         customNextSlideOut = styles['customNextSlideOut'],
         customPrevSlideIn = styles['customPrevSlideIn'],
@@ -929,6 +957,8 @@ function populateStylesObject( $element )
     // Set duration if not declared
     if (cssShow['duration'] == undefined) { cssShow['duration'] = styles['animationSTime'] }
     if (cssHide['duration'] == undefined) { cssHide['duration'] = styles['animationSTime'] }
+    if (cssActive['duration'] == undefined) { cssActive['duration'] = styles['animationSTime'] }
+    if (cssInactive['duration'] == undefined) { cssInactive['duration'] = styles['animationSTime'] }
     if (customNextSlideIn['duration'] == undefined) { customNextSlideIn['duration'] = styles['animationSTime'] }
     if (customNextSlideOut['duration'] == undefined) { customNextSlideOut['duration'] = styles['animationSTime'] }
     if (customPrevSlideIn['duration'] == undefined) { customPrevSlideIn['duration'] = styles['animationSTime'] }
@@ -944,6 +974,10 @@ function populateStylesObject( $element )
 
     if (styles['submitHide']['duration'] == undefined) { styles['duration'] = styles['submitMsTime1'] / 1000 }
     if (styles['submitShow']['duration'] == undefined) { styles['duration'] = styles['submitMsTime2'] / 1000 }
+
+    // Select / Deselect
+    styles['cssSelect'] = getJsonAttrVals( $element, cssSelectAttribute, cssActive )
+    styles['cssDeselect'] = getJsonAttrVals( $element, cssDeselectAttribute, cssInactive )
 }
 
 
@@ -952,11 +986,14 @@ function initActiveInactiveClickState( $elements, styleObjectIndex, $parent )
 {
     // Local variables
     let cssActive = stylesObject[styleObjectIndex]['cssActive'],
-        cssInactive = stylesObject[styleObjectIndex]['cssInactive']
-        isRadio = $parent.attr(stepTypeAttribute) == 'radio' ? true : false
+        cssInactive = stylesObject[styleObjectIndex]['cssInactive'],
+        cssInactiveQuick = { ...cssInactive, duration: 0 },
+        isRadio = $parent.attr(stepTypeAttribute) == 'radio' ? true : false,
+        elements = jqueryToJs( $elements )
+    
 
     // Functions
-    $elements.css( cssInactive ) // Init
+    gsap.set( elements, cssInactiveQuick ) // Init
     
     if ( isRadio )
     {
@@ -966,8 +1003,8 @@ function initActiveInactiveClickState( $elements, styleObjectIndex, $parent )
                 
             $element.click(() => 
             {
-                $elements.css( cssInactive )
-                $element.css( cssActive )
+                gsap.to( elements, cssInactive )
+                gsap.to( $element[0], cssActive )
             })
         })
     }
@@ -1078,6 +1115,23 @@ function returnChildElements( $element, selector, eqValue = 'false', notSelector
     }
 
     return $childElements
+}
+
+
+// - - Convert - -
+
+// jQuery to native JS
+function jqueryToJs( $elements )
+{
+    // Vars
+    let nodeList = []
+
+    $elements.each(function()
+    {
+        nodeList.push( this )
+    })
+
+    return nodeList
 }
 
 
