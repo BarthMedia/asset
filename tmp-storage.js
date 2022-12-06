@@ -574,13 +574,14 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
         resizeHeight2 = $success.outerHeight( true ),
         multiplier1 = styles['autoResizeSuccessTimeMultiplier1'],
         multiplier2 = styles['autoResizeSuccessTimeMultiplier2'],
+        submitTimeout = ( submitHide.duration + submitShow.duration ) * 1000,
         tl = new gsap.timeline(),
         resizeTl = new gsap.timeline()
 
     // Dev mode logic
     if ( devMode < .5 ) // If dev mode is half or higher, do not:
     {
-        setTimeout( $form.submit(), time1 * 1000 )
+        setTimeout( $form.submit(), submitTimeout )
     }
     else
     {
@@ -1009,7 +1010,7 @@ function populateStylesObject( $element )
 
     // Define submit animation type
     styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, cssHide )
-    styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, cssShow )
+    styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, { ...cssShow, duration: styles['animationSTime'] * 1.5 } )
 
     if (styles['submitHide']['duration'] == undefined) { styles['duration'] = styles['submitMsTime1'] / 1000 }
     if (styles['submitShow']['duration'] == undefined) { styles['duration'] = styles['submitMsTime2'] / 1000 }
