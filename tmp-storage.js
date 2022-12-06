@@ -115,9 +115,7 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     autoResizeSuccessTimeMultiplier1Default = 1,
     autoResizeSuccessTimeMultiplier2Default = .85,
     maxSwipeScreenSizeDefault = 767,
-    minSwipeScreenSizeDefault = 0,
-    submitShowDefault = { ...cssShowDefault },
-    submitHideDefault = { ...cssHideDefault }
+    minSwipeScreenSizeDefault = 0
 
 // Styles object
 let stylesObject = []
@@ -506,6 +504,7 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
         time1 = styles['submitMsTime1'] / 1000,
         time2 = styles['submitMsTime2'] / 1000,
         submitHide = styles['submitHide'],
+        submitHideQuick = { ...submitHide, duration: 0 }
         submitShow = styles['submitShow'],
         resizeHeight1 = $form.outerHeight( true ),
         resizeHeight2 = $success.outerHeight( true ),
@@ -528,6 +527,7 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
     // - GSAP animations -
 
     // Animate submission transition
+    tl.set($success[0], submitHideQuick)
     tl.to($form[0], submitHide)
     tl.to($success[0], submitShow)
 
@@ -578,7 +578,7 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 
     // Log speed multiplier info if dev mode = true 
     if ( devMode >= 2 ) { console.log(`Dev mode ${ devMode }; GSAP transition speed multiplier string: ${ speedMultiplierString }`) }
-
+    
 
     // - Depending on slide Direction animate: -
     if ( slideDirection == 'to bottom' ) // Top to bottom
@@ -894,8 +894,8 @@ function populateStylesObject( $element )
     {
         animationMsTime: parseFloat( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
         equalHeightTransitionSpeedMultiplier: parseFloat( $element.attr(equalHeightTransitionSpeedMultiplierAttribute) || equalHeightTransitionSpeedMultiplierDefault ),
-        cssShow: { ...getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ) },
-        cssHide: { ...getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ) },
+        cssShow: getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ),
+        cssHide: getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ),
         cssActive: getJsonAttrVals( $element, cssActiveAttribute, cssActiveDefault ),
         cssInactive: getJsonAttrVals( $element, cssInactiveAttribute, cssInactiveDefault ),
         errorColor: $element.attr(errorColorAttribute) || errorColorDefault,
@@ -939,8 +939,8 @@ function populateStylesObject( $element )
     styles['submitMsTime2'] = parseFloat( $element.attr(submitMsTime2Attribute) ) || styles['animationMsTime']
 
     // Define submit animation type
-    styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, submitHideDefault )
-    styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, submitShowDefault )
+    styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, cssHide )
+    styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, cssShow )
 
     if (styles['submitHide']['duration'] == undefined) { styles['duration'] = styles['submitMsTime1'] / 1000 }
     if (styles['submitShow']['duration'] == undefined) { styles['duration'] = styles['submitMsTime2'] / 1000 }
@@ -1087,7 +1087,7 @@ function returnChildElements( $element, selector, eqValue = 'false', notSelector
 function getJsonAttrVals( $element, attribute, defaultVals, objectMode = true )
 {
     return ($element.attr(attribute) || '{}') == '{}' ?
-    defaultVals
+    { ...defaultVals }
     : JSON.parse( preJsonParse( $element.attr(attribute), true ) )
 }
 
