@@ -1111,7 +1111,7 @@ function defineStepType( $step, stepIndex, $formBlock )
     // Local elements
     let $radios = $step.find(radioSelector),
         $checkboxes = $step.find(checkboxSelector),
-        $buttons = $step.find(`a, ${ continueButtonSelector }, ${ submitButtonSelector }, ${ wButtonSelector }`).not( notAButtonSelector ).not( backwardsButtonSelector ),
+        $buttons = $step.find(`a, ${ continueButtonSelector }, ${ wButtonSelector }`).not( notAButtonSelector ).not( backwardsButtonSelector ),
         $inputs = $step.find('input'),
         formBlockIndex = parseInt( $formBlock.attr(formBlockindexAttribute) )
     
