@@ -12,7 +12,7 @@ const formBlockSelctor = '[bmg-form = "Form Block"]',
     stepSelctor = '[bmg-form = "Form Step"]',
     dividerSelctor = '[bmg-form = "Visual Divider"]',
     continueButtonSelector = '[bmg-form = "Continue Button"]',
-    submitButtonSelector = '[bmg-form = "Submit Button"]',
+    backwardsButtonSelector = '[bmg-form = "Backwards Button"]',
     notAButtonSelector = '[bmg-form = "Not a Button"]',
     quizResultSelector = '[bmg-form = "Quiz Result"]'
 
@@ -155,7 +155,8 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     // Glocal elements
     let $formBlock = $(this),
         $form = returnChildElements( $formBlock, formSelctor, 0 ),
-        $steps = returnChildElements( $form, stepSelctor, 'false', `${ dividerSelctor }, ${ quizResultSelector }` )
+        $steps = returnChildElements( $form, stepSelctor, 'false', `${ dividerSelctor }, ${ quizResultSelector }` ),
+        $backwardsButtons = $form.find( backwardsButtonSelector )
 
     // Glocal variables
     let clickRecord = [{step: 0}],
@@ -301,6 +302,13 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
     }
+
+
+    // - Backwards buttons -
+    $backwardsButtons.each(function()
+    {
+        $(this).click(() => { goToPrevStep() })
+    })
 
 
     // - Find next -
@@ -1103,7 +1111,7 @@ function defineStepType( $step, stepIndex, $formBlock )
     // Local elements
     let $radios = $step.find(radioSelector),
         $checkboxes = $step.find(checkboxSelector),
-        $buttons = $step.find(`a, ${ continueButtonSelector }, ${ submitButtonSelector }, ${ wButtonSelector }`).not( notAButtonSelector ),
+        $buttons = $step.find(`a, ${ continueButtonSelector }, ${ submitButtonSelector }, ${ wButtonSelector }`).not( notAButtonSelector ).not( backwardsButtonSelector ),
         $inputs = $step.find('input'),
         formBlockIndex = parseInt( $formBlock.attr(formBlockindexAttribute) )
     
