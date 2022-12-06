@@ -37,7 +37,8 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     escEventAttribute = 'bmg-data-esc-event',
     enterEventAttribute = 'bmg-data-enter-event',
     leftEventAttribute = 'bmg-data-left-event',
-    rigthEventAttribute = 'bmg-data-rigth-event',
+    leftRightKeyEventInfinityAllowedAttribute = 'bmg-data-left-key-event-infintiy-allowed',
+    rightEventAttribute = 'bmg-data-right-event',
     devModeAttribute = 'bmg-data-dev-mode',
     swipeAllowedAttribute = 'bmg-data-swipe-allowed',
     quizPathAttribute = 'bmg-data-quiz-path'
@@ -46,7 +47,8 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
 const escEventDefault = 'escape, esc, arrowup, up',
     enterEventDefault = 'enter, arrowdown, down',
     leftEventDefault = 'arrowleft, left',
-    rightEventDefault = 'arrowright, right'
+    rightEventDefault = 'arrowright, right',
+    leftRightKeyEventInfinityAllowedDefault = 'true'
 
 // Development mode object
 const devModeObject = [
@@ -309,7 +311,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         // Logic
         if ( $clickedButton.length == 1 )
         {
-            console.log("TODO: Implement required checking.")
+            console.log("TODO: Implement required checking. If error thrown, let left right event navigate through individual inputs -- enter & ecs should be functional in there as well.")
 
             // if ( stepRequirementsPassed( $formBlock, $currentStep ) ) { // Remove error styling and Go to next step / Else the function will mark the error }
             
@@ -319,6 +321,37 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         {
             selectButton( 0, $currentStep, $formBlock )
         }
+    }
+
+
+    // - Select next button -
+    let isInfinity = stylesObject[formBlockIndex]['leftRightKeyEventInfinityAllowed'] == 'true' ? true : false
+    
+    function findNextButton( directionInt = 1 )
+    {
+        // Variables
+        let currentStepId = clickRecord[clickRecord.length -1].step, // Get current click record entry
+            object = stepLogicObject[currentStepId],
+            $currentStep = object.$, // find step with that id
+            buttonLength = $currentStep.find(`[${ clickElementIdAttribute }]`).length -1,
+            $clickedButton = $currentStep.find(`[${ markClickElementAttribute } = "true"]`), // find button with got clicked attribute
+            clickedButtonId = parseInt( $clickedButton.attr(clickElementIdAttribute) || -2 ),
+            x = clickedButtonId == -2 ? 0 : clickedButtonId + directionInt
+
+        // Logic
+        if ( isInfinity )
+        {
+            x = x > buttonLength ? 0 : x
+            x = x < 0 ? buttonLength : x
+        }
+        else
+        {
+            x = x > buttonLength ? buttonLength : x
+            x = x < 0 ? 0 : x
+        }
+        
+        // Action
+        selectButton( x, $currentStep, $formBlock )
     }
 
     
@@ -338,8 +371,10 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     })
 
     // Keyboard variables
-    let escEvent = ( $formBlock.attr(escEventAttribute) || escEventDefault ).split(', ')
-        enterEvent = ( $formBlock.attr(enterEventAttribute) || enterEventDefault ).split(', ')
+    let escEvent = ( $formBlock.attr(escEventAttribute) || escEventDefault ).split(', '),
+        enterEvent = ( $formBlock.attr(enterEventAttribute) || enterEventDefault ).split(', '),
+        leftEvent = ( $formBlock.attr(leftEventAttribute) || leftEventDefault ).split(', '),
+        rightEvent = ( $formBlock.attr(rightEventAttribute) || rightEventDefault ).split(', ')
 
     // Initialize keyboard events
     document.onkeydown = function(evt)
@@ -366,9 +401,14 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             {
                 findNext()
             }
-
-            // Set up left, right keyboard controls
-            console.log('Todo: Set up left, right button selection control') // buttonSelectControl( 'left' )
+            else if ( leftEvent.includes(key) && !evt.shiftKey ) // Only if shift is not pressed
+            {
+                findNextButton(-1)
+            }
+            else if ( rightEvent.includes(key) && !evt.shiftKey ) // Only if shift is not pressed
+            {
+                findNextButton(1)
+            }
         }
     }
 
@@ -461,11 +501,10 @@ function selectButton( x, $step, $formBlock )
         styles = stylesObject[styleObjectIndex],
         cssDeselect = styles['cssDeselect'],
         cssSelect = styles['cssSelect']
-        
     
     // Elements
     let $buttons = $step.find(`[${ clickElementIdAttribute }]`),
-        buttons = jqueryToJs( $buttons )
+        buttons = jqueryToJs( $buttons ),
         $button = $step.find(`[${ clickElementIdAttribute } = ${ x }]`)
 
     // Actions
@@ -936,7 +975,8 @@ function populateStylesObject( $element )
         autoResizeSuccessTimeMultiplier1: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier1Attribute) || autoResizeSuccessTimeMultiplier1Default ),
         autoResizeSuccessTimeMultiplier2: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier2Attribute) || autoResizeSuccessTimeMultiplier2Default ),
         maxSwipeScreenSize: parseInt( $element.attr(maxSwipeScreenSizeAttribute) || maxSwipeScreenSizeDefault ),
-        minSwipeScreenSize: parseInt( $element.attr(minSwipeScreenSizeAttribute) || minSwipeScreenSizeDefault )
+        minSwipeScreenSize: parseInt( $element.attr(minSwipeScreenSizeAttribute) || minSwipeScreenSizeDefault ),
+        leftRightKeyEventInfinityAllowed: $element.attr(leftRightKeyEventInfinityAllowedAttribute) || leftRightKeyEventInfinityAllowedDefault
     })
 
     // Iterate over created object
