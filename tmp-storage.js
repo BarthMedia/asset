@@ -13,13 +13,15 @@ const formBlockSelctor = '[bmg-form = "Form Block"]',
     dividerSelctor = '[bmg-form = "Visual Divider"]',
     continueButtonSelector = '[bmg-form = "Continue Button"]',
     submitButtonSelector = '[bmg-form = "Submit Button"]',
+    notAButtonSelector = '[bmg-form = "Not a Button"]',
     quizResultSelector = '[bmg-form = "Quiz Result"]'
 
 // Webflow classes
 const radioSelector = '.w-radio',
     checkboxSelector = '.w-checkbox',
     wButtonSelector = '.w-button',
-    successSelector = '.w-form-done'
+    successSelector = '.w-form-done',
+    conditionInvisibleSelector = '.w-condition-invisible'
 
 // Functional attribues
 const formBlockindexAttribute = 'bmg-data-form-block-index',
@@ -41,7 +43,8 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     rightEventAttribute = 'bmg-data-right-event',
     devModeAttribute = 'bmg-data-dev-mode',
     swipeAllowedAttribute = 'bmg-data-swipe-allowed',
-    quizPathAttribute = 'bmg-data-quiz-path'
+    quizPathAttribute = 'bmg-data-quiz-path',
+    autoDeleteConditionallyInvisibleItemsAttribute = 'bmg-data-auto-delete-conditionally-invisible-elements'
 
 // Functional defaults
 const escEventDefault = 'escape, esc, arrowup, up',
@@ -140,6 +143,13 @@ let stylesObject = []
 // + Main function +
 function main() { $(formBlockSelctor).each(function( formBlockIndex )
 {
+    // - - Remove webflow invisible steps / items / elements - -
+    if ( $(this).attr(autoDeleteConditionallyInvisibleItemsAttribute) != 'false' )
+    {
+        $(this).find( conditionInvisibleSelector ).remove()
+    }
+
+    
     // - - Define base values - -
     
     // Glocal elements
@@ -1037,7 +1047,7 @@ function initActiveInactiveClickState( $elements, styleObjectIndex, $parent )
         elements = jqueryToJs( $elements )
     
     // Functions
-    $elements.css( cssInactiveSet ) // Init
+    gsap.set( elements, cssInactiveSet ) // Init
     
     if ( isRadio )
     {
@@ -1093,7 +1103,7 @@ function defineStepType( $step, stepIndex, $formBlock )
     // Local elements
     let $radios = $step.find(radioSelector),
         $checkboxes = $step.find(checkboxSelector),
-        $buttons = $step.find(`a, ${ continueButtonSelector }, ${ submitButtonSelector }, ${ wButtonSelector }`),
+        $buttons = $step.find(`a, ${ continueButtonSelector }, ${ submitButtonSelector }, ${ wButtonSelector }`).not( notAButtonSelector ),
         $inputs = $step.find('input'),
         formBlockIndex = parseInt( $formBlock.attr(formBlockindexAttribute) )
     
