@@ -11,6 +11,7 @@ const formBlockSelctor = '[bmg-form = "Form Block"]',
     formSelctor = '[bmg-form = "Form"]',
     stepSelctor = '[bmg-form = "Form Step"]',
     dividerSelctor = '[bmg-form = "Visual Divider"]',
+    submitButtonSelector = '[bmg-form = "Submit Button"]',
     continueButtonSelector = '[bmg-form = "Continue Button"]',
     backwardsButtonSelector = '[bmg-form = "Backwards Button"]',
     notAButtonSelector = '[bmg-form = "Not a Button"]',
@@ -156,7 +157,8 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     let $formBlock = $(this),
         $form = returnChildElements( $formBlock, formSelctor, 0 ),
         $steps = returnChildElements( $form, stepSelctor, 'false', `${ dividerSelctor }, ${ quizResultSelector }` ),
-        $backwardsButtons = $form.find( backwardsButtonSelector )
+        $backwardsButtons = $form.find( backwardsButtonSelector ),
+        $submitButtons = $form.find( submitButtonSelector )
 
     // Glocal variables
     let clickRecord = [{step: 0}],
@@ -188,9 +190,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
     // Save form block index in the DOM
     $formBlock.attr(formBlockindexAttribute, formBlockIndex)
-
     
-    // - For each step -
+    
+    // - For each step - Find continue buttons -
     $steps.each(function( stepIndex )
     {
         // Local elments
@@ -231,84 +233,23 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         }) })
     })
 
-    
-    // - Create next step object -
-    let stepLogicObject = creatNextStepObject( $steps )
-
-    
-    // - Go to next step -
-    function goToNextStep( stepIndex, buttonIndex )
-    {
-        // Variable
-        let nextStepId = stepLogicObject[stepIndex].buttons[buttonIndex].nextStepId
-
-        // Submit if last step
-        if ( stepLogicObject[stepIndex].isLast )
-        {
-            // Turn off keyboard form navigation
-            keyEventsAllowed = false
-            
-            // Remove all steps that are not part of the click record before submitting
-            removeOtherSteps(stepLogicObject, clickRecord, $formBlock)
-
-            // Initialize quiz mode
-            initQuizMode( $formBlock, clickRecord )
-
-            // Submit
-            performVisualSubmit( $formBlock, $form, devMode )
-        }
-        else
-        {
-            // Variables
-            let $currentStep = stepLogicObject[stepIndex].$
-                $nextStep = stepLogicObject[nextStepId].$
-
-            // Functions
-
-            // Update click record
-            clickRecord.push({step: nextStepId})
-
-            // Call transition animation
-            animateStepTransition( $currentStep, $nextStep, $form, devMode )
-        }
-
-        // Dev mode
-        if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
-    }
-
-    
-    // - Go to prev step -
-    function goToPrevStep( triggeredBySwipe = false )
-    {
-        // Variables
-        let currentStepId = clickRecord[clickRecord.length -1].step,
-            prevStepId = clickRecord[Math.max( clickRecord.length -2, 0 )].step
-
-        // Prevent swipe gestures when turned off on step
-        if ( triggeredBySwipe && stepLogicObject[currentStepId].swipeAllowed.toLowerCase() == 'false' ) { return }
-
-        // Prevent going before first step
-        if ( currentStepId != prevStepId )
-        {
-            // Elements
-            let $currentStep = $form.find(`[${ stepIndexAttribute } = "${ currentStepId }"]`),
-                $prevStep = $form.find(`[${ stepIndexAttribute } = "${ prevStepId }"]`)
-
-            // Functions
-            clickRecord.pop() // Remove last element
-            animateStepTransition( $currentStep, $prevStep, $form, devMode )
-        }
-
-        // Dev mode
-        if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
-    }
-
 
     // - Backwards buttons -
     $backwardsButtons.each(function()
     {
         $(this).click(() => { goToPrevStep() })
     })
+
+
+    // - Submit buttons -
+    $submitButtons.each(function()
+    {
+        $(this).click(() => { submitForm() })
+    })
+
+    
+    // - Create next step object -
+    let stepLogicObject = creatNextStepObject( $steps )
 
 
     // - Find next -
@@ -373,7 +314,82 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
 
     
-    // - Handle bmg autofocus & keyboard events -
+    // - Go to next step -
+    function goToNextStep( stepIndex, buttonIndex )
+    {
+        // Variable
+        let nextStepId = stepLogicObject[stepIndex].buttons[buttonIndex].nextStepId
+
+        // Submit if last step
+        if ( stepLogicObject[stepIndex].isLast )
+        {
+            submitForm()
+        }
+        else
+        {
+            // Variables
+            let $currentStep = stepLogicObject[stepIndex].$
+                $nextStep = stepLogicObject[nextStepId].$
+
+            // Functions
+
+            // Update click record
+            clickRecord.push({step: nextStepId})
+
+            // Call transition animation
+            animateStepTransition( $currentStep, $nextStep, $form, devMode )
+        }
+
+        // Dev mode
+        if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
+    }
+
+    
+    // - Go to prev step -
+    function goToPrevStep( triggeredBySwipe = false )
+    {
+        // Variables
+        let currentStepId = clickRecord[clickRecord.length -1].step,
+            prevStepId = clickRecord[Math.max( clickRecord.length -2, 0 )].step
+
+        // Prevent swipe gestures when turned off on step
+        if ( triggeredBySwipe && stepLogicObject[currentStepId].swipeAllowed.toLowerCase() == 'false' ) { return }
+
+        // Prevent going before first step
+        if ( currentStepId != prevStepId )
+        {
+            // Elements
+            let $currentStep = $form.find(`[${ stepIndexAttribute } = "${ currentStepId }"]`),
+                $prevStep = $form.find(`[${ stepIndexAttribute } = "${ prevStepId }"]`)
+
+            // Functions
+            clickRecord.pop() // Remove last element
+            animateStepTransition( $currentStep, $prevStep, $form, devMode )
+        }
+
+        // Dev mode
+        if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
+    }
+
+
+    // - Submit Form -
+    function submitForm()
+    {
+        // Turn off keyboard form navigation
+        keyEventsAllowed = false
+            
+        // Remove all steps that are not part of the click record before submitting
+        removeOtherSteps(stepLogicObject, clickRecord, $formBlock)
+
+        // Initialize quiz mode
+        initQuizMode( $formBlock, clickRecord )
+
+        // Submit
+        performVisualSubmit( $formBlock, $form, devMode )
+    }
+
+    
+    // - - Handle bmg autofocus & keyboard events - -
 
     // Initialize autofocus attribute on 1st form
     if ( formBlockIndex == 0 )
@@ -394,7 +410,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         leftEvent = ( $formBlock.attr(leftEventAttribute) || leftEventDefault ).split(', '),
         rightEvent = ( $formBlock.attr(rightEventAttribute) || rightEventDefault ).split(', ')
 
-    // Initialize keyboard events
+    // - Initialize keyboard events -
     document.onkeydown = function(evt)
     {
         // Assign event
@@ -431,7 +447,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
 
 
-    // - Handle mobile swipe gestures -
+    // - - Handle mobile swipe gestures - -
 
     // Init
     defineSwipeType( $formBlock )
@@ -443,7 +459,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     // Init all swipe directions
     hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
 
-    // Variations 
+    // - Variations -
     if ( type == 'false' )
     {
     }
@@ -653,11 +669,14 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
         speedMultiplier = isEqualHeight ? styles['equalHeightTransitionSpeedMultiplier'] : 1
         speedMultiplierString = `<+=${ speedMultiplier * 100 }%`,
         isReverse = parseInt( $currentStep.attr(stepIndexAttribute) ) > parseInt( $nextStep.attr(stepIndexAttribute) ),
-        slideDirection = styles['slideDirection'].toLowerCase(),
+        slideDirection = ( $currentStep.attr(slideDirectionAttribute) || styles['slideDirection'] ).toLowerCase(),
         autoResizeTime1 = cssShow['duration'],
         autoResizeTime2 = cssHide['duration'],
         autoResizeTimeMultiplier1 = styles['autoResizeTimeMultiplier1'],
         autoResizeTimeMultiplier2 = styles['autoResizeTimeMultiplier2']
+
+    // Step specific animation in reverse
+    if ( isReverse ) { slideDirection = ( $nextStep.attr(slideDirectionAttribute) || slideDirection ).toLowerCase() }
 
     // Log speed multiplier info if dev mode = true 
     if ( devMode >= 2 ) { console.log(`Dev mode ${ devMode }; GSAP transition speed multiplier string: ${ speedMultiplierString }`) }
