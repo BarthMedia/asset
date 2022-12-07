@@ -56,7 +56,7 @@ const escEventDefault = 'escape, esc, arrowup, up',
     rightEventDefault = 'arrowright, right',
     leftRightKeyEventInfinityAllowedDefault = 'true'
 
-// Development mode object
+// Development mode object 
 const devModeObject = [
     {
         names: ['false'],
