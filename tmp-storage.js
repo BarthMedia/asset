@@ -22,7 +22,8 @@ const radioSelector = '.w-radio',
     checkboxSelector = '.w-checkbox',
     wButtonSelector = '.w-button',
     successSelector = '.w-form-done',
-    conditionInvisibleSelector = '.w-condition-invisible'
+    conditionInvisibleSelector = '.w-condition-invisible',
+    wRadioCheckedSelector = '.w--redirected-checked'
 
 // Functional attribues
 const formBlockindexAttribute = 'bmg-data-form-block-index',
@@ -45,6 +46,7 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     devModeAttribute = 'bmg-data-dev-mode',
     swipeAllowedAttribute = 'bmg-data-swipe-allowed',
     quizPathAttribute = 'bmg-data-quiz-path',
+    redirectUrlAttribute = 'bmg-data-redirect-url',
     autoDeleteConditionallyInvisibleItemsAttribute = 'bmg-data-auto-delete-conditionally-invisible-elements'
 
 // Functional defaults
@@ -85,6 +87,8 @@ const cssShowAttribute = 'bmg-data-css-show',
     animationMsTimeAttribute = 'bmg-data-animation-ms-time',
     equalHeightTransitionSpeedMultiplierAttribute = 'bmg-data-equal-height-transition-speed-multiplier',
     errorColorAttribute = 'bmg-data-error-color',
+    cssErrorStatusAttribute = 'bmg-data-css-error-status',
+    cssErrorStatusResolvedAttribute = 'bmg-data-css-error-status-resolved',
     slideDirectionAttribute = 'bmg-data-slide-direction',
     customNextSlideInAttribute = 'bmg-data-custom-next-slide-in',
     customNextSlideOutAttribute = 'bmg-data-custom-next-slide-out',
@@ -102,7 +106,8 @@ const cssShowAttribute = 'bmg-data-css-show',
     submitMsTime1Attribute = 'bmg-data-submit-ms-time-1',
     submitMsTime2Attribute = 'bmg-data-submit-ms-time-2',
     submitShowAttribute = 'bmg-data-submit-show',
-    submitHideAttribute = 'bmg-data-submit-hide'
+    submitHideAttribute = 'bmg-data-submit-hide',
+    redirectMsTimeAttribute = 'bmg-data-redirect-ms-time'
 
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
@@ -124,7 +129,8 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     autoResizeSuccessTimeMultiplier1Default = 1,
     autoResizeSuccessTimeMultiplier2Default = .85,
     maxSwipeScreenSizeDefault = 767,
-    minSwipeScreenSizeDefault = 0
+    minSwipeScreenSizeDefault = 0,
+    redirectMsTimeDefault = 1
 
 // Styles object
 let stylesObject = []
@@ -151,7 +157,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
 
     
-    // - - Define base values - -
+    // - - - Define base values - - -
     
     // Glocal elements
     let $formBlock = $(this),
@@ -186,7 +192,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
 
     
-    // - -  Glocal functions - -
+    // - - - Glocal functions - - -
 
     // Save form block index in the DOM
     $formBlock.attr(formBlockindexAttribute, formBlockIndex)
@@ -270,11 +276,10 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         // Logic
         if ( $clickedButton.length == 1 )
         {
-            console.log("TODO: Implement required checking. If error thrown, let left right event navigate through individual inputs -- enter & ecs should be functional in there as well.")
-
-            // if ( stepRequirementsPassed( $formBlock, $currentStep ) ) { // Remove error styling and Go to next step / Else the function will mark the error }
-            
-            goToNextStep( currentStepId, clickedButtonId )
+            if ( stepRequirementsPassed( $formBlock, $currentStep ) )
+            {
+                goToNextStep( currentStepId, clickedButtonId )
+            }
         }
         else
         {
@@ -454,50 +459,50 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
     // Variables
     let hammer = Hammer( $formBlock[0] ),
-        type = $formBlock.attr(swipeTypeAnimationAttribute)
+        animationType = $formBlock.attr(swipeTypeAnimationAttribute)
 
     // Init all swipe directions
     hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
 
     // - Variations -
-    if ( type == 'false' )
+    if ( animationType == 'false' )
     {
     }
-    else if ( type == 'to bottom' )
+    else if ( animationType == 'to bottom' )
     {
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipedown', () => { findNext(true) })
     }
-    else if ( type == 'to top' || type == 'vertical' )
+    else if ( animationType == 'to top' || animationType == 'vertical' )
     {
         hammer.on('swipeup', () => { findNext(true) })
         hammer.on('swipedown', () => { goToPrevStep(true) })
     }
-    else if ( type == 'to left' || type == 'default' || type == 'horizontal' )
+    else if ( animationType == 'to left' || animationType == 'default' || animationType == 'horizontal' )
     {
         hammer.on('swipeleft', () => { findNext(true) })
         hammer.on('swiperight', () => { goToPrevStep(true) })
     }
-    else if ( type == 'to right' )
+    else if ( animationType == 'to right' )
     {
         hammer.on('swipeleft', () => { goToPrevStep(true) })
         hammer.on('swiperight', () => { findNext(true) })
     }
-    else if ( type == '4' || type == '270°' )
+    else if ( animationType == '4' || animationType == '270°' )
     {
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipeleft', () => { findNext(true) })
         hammer.on('swiperight', () => { findNext(true) })
         hammer.on('swipedown', () => { goToPrevStep(true) })
     }
-    else if ( type == '3' || type == '180°' )
+    else if ( animationType == '3' || animationType == '180°' )
     {
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipeleft', () => { findNext(true) })
         hammer.on('swiperight', () => { findNext(true) })
         hammer.on('swipedown', () => { goToPrevStep(true) })
     }
-    else if ( type == '2' || type == '90°' )
+    else if ( animationType == '2' || animationType == '90°' )
     {
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipeleft', () => { findNext(true) })
@@ -527,6 +532,77 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 // + Helper functions +
 
+// - - Add error status - -
+function errorStatus( mode = 'add', $elements, styleIndex )
+{
+    // Variables
+    let styles = stylesObject[styleIndex],
+        cssErrorStatus = styles['cssErrorStatus'],
+        cssErrorStatusResolved = styles['cssErrorStatusResolved'],
+        elements = jqueryToJs( $elements )
+
+    // Action
+    if ( mode == 'add' )
+    {
+        gsap.to( elements, cssErrorStatus )
+    }
+    else // mode == 'remove'
+    {
+        gsap.to( elements, cssErrorStatusResolved )
+    }
+}
+
+
+// - - check step requirments - -
+function stepRequirementsPassed( $formBlock, $currentStep )
+{
+    // Variables
+    let stepStype = $currentStep.attr(stepTypeAttribute),
+        styleIndex = parseInt( $formBlock.attr(formBlockindexAttribute) )
+
+    // Logic
+    if ( stepStype == 'empty' )
+    {
+        return true
+    }
+    else if ( stepStype == 'radio' )
+    {
+        // Elements
+        let $radios = $currentStep.find( radioSelector ),
+            $checked = $radios.find( wRadioCheckedSelector )
+        
+        // Logic
+        if ( $checked.length == 0 )
+        {
+            // Throw error
+            errorStatus( 'add', $radios, styleIndex )
+
+            // Add clickevent
+            $radios.on('click.stepRequirements', function()
+            {
+                // Remove error
+                errorStatus( 'remove', $radios, styleIndex )
+
+                // Remove clickevent
+                $radios.off('click.stepRequirements')
+            })
+
+            // Return
+            return false
+        }
+        else
+        {
+            // Return
+            return true
+        }
+    }
+    
+    console.log("TODO: Implement required checking. If error thrown, let left right event navigate through individual inputs -- enter & ecs should be functional in there as well.")
+
+            // if ( stepRequirementsPassed( $formBlock, $currentStep ) ) { // Remove error styling and Go to next step / Else the function will mark the error }
+}
+
+
 // - - Select button x - -
 function selectButton( x, $step, $formBlock )
 {
@@ -534,7 +610,7 @@ function selectButton( x, $step, $formBlock )
     let styleObjectIndex = parseInt( $formBlock.attr(formBlockindexAttribute) ),
         styles = stylesObject[styleObjectIndex],
         cssDeselect = styles['cssDeselect'],
-        cssSelect = styles['cssSelect']
+        cssErrorStatus = styles['cssSelect']
     
     // Elements
     let $buttons = $step.find(`[${ clickElementIdAttribute }]`),
@@ -1049,8 +1125,8 @@ function populateStylesObject( $element )
     styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, cssHide )
     styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, { ...cssShow, duration: styles['animationSTime'] * 1.5 } )
 
-    if (styles['submitHide']['duration'] == undefined) { styles['duration'] = styles['submitMsTime1'] / 1000 }
-    if (styles['submitShow']['duration'] == undefined) { styles['duration'] = styles['submitMsTime2'] / 1000 }
+    if (styles['submitHide']['duration'] == undefined) { styles['submitHide']['duration'] = styles['submitMsTime1'] / 1000 }
+    if (styles['submitShow']['duration'] == undefined) { styles['submitShow']['duration'] = styles['submitMsTime2'] / 1000 }
 
     // Set css inactive
     styles['setCssInactive'] = getJsonAttrVals( $element, setCssInactiveAttribute, cssInactive )
@@ -1059,6 +1135,13 @@ function populateStylesObject( $element )
     // Select / Deselect
     styles['cssSelect'] = getJsonAttrVals( $element, cssSelectAttribute, cssActive )
     styles['cssDeselect'] = getJsonAttrVals( $element, cssDeselectAttribute, cssInactive )
+
+    // Error status CSS cssErrorStatusResolved
+    styles['cssErrorStatus'] = getJsonAttrVals( $element, cssErrorStatusAttribute, { duration: styles['animationSTime'] } )
+    styles['cssErrorStatusResolved'] = getJsonAttrVals( $element, cssErrorStatusResolvedAttribute, { duration: styles['animationSTime'] } )
+
+    if (styles['cssErrorStatus']['borderColor'] == undefined) { styles['cssErrorStatus']['borderColor'] = styles['errorColor'] }
+    if (styles['cssErrorStatusResolved']['borderColor'] == undefined) { styles['cssErrorStatusResolved']['borderColor'] = '' }
 }
 
 
