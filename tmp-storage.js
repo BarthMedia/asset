@@ -610,7 +610,7 @@ function selectButton( x, $step, $formBlock )
     let styleObjectIndex = parseInt( $formBlock.attr(formBlockindexAttribute) ),
         styles = stylesObject[styleObjectIndex],
         cssDeselect = styles['cssDeselect'],
-        cssErrorStatus = styles['cssSelect']
+        cssSelect = styles['cssSelect']
     
     // Elements
     let $buttons = $step.find(`[${ clickElementIdAttribute }]`),
@@ -628,14 +628,64 @@ function selectButton( x, $step, $formBlock )
 function initQuizMode( $formBlock, clickRecord )
 {
     // Local elements
-    let $success = $formBlock.find(successSelector),
-        $results = $success.find(quizResultSelector)
+    let success = $formBlock[0].querySelector(successSelector),
+        results = success.querySelectorAll(quizResultSelector)
+
+    // Styles
+    let styleObjectIndex = parseInt( $formBlock.attr(formBlockindexAttribute) ),
+        styles = stylesObject[styleObjectIndex],
+        redirectMsTime = styles['redirectMsTime']
 
     // Run only if active
-    if ( $results.length > 0 )
+    if ( results.length > 0 )
     {
+        console.log(results)
+
+        // Vars & elements
+        let defaultResult = results[0],
+            defaultUrl = defaultResult.getAttribute(redirectUrlAttribute)
+
+        // Url redirect logic
+        if ( defaultUrl != undefined )
+        {
+            setTimeout(() => 
+            {
+                // Updated values
+                defaultUrl = defaultResult.getAttribute(redirectUrlAttribute)
+
+                // Action
+                location.assign(defaultUrl)
+            }, redirectMsTime)
+            
+            return
+        }
+        
+        /*
+        // Elements & vars
+        let $defaultResult = $success.find(`[${ quizPathAttribute } = "default"]`).add( $results ).eq(0),
+            defaultUrl = $defaultResult.attr('redirectUrlAttribute')
+
+        console.log($success, $defaultResult, defaultUrl)
+
+        // Url redirect logic
+        if ( defaultUrl != undefined )
+        {
+            setTimeout(() => 
+            {
+                // Updated values
+                defaultUrl = $defaultResult.attr('redirectUrlAttribute')
+
+                // Action
+                location.assign(defaultUrl)
+            }, redirectMsTime)
+            
+            return
+        } */
+        
         // Local variables
         let hasNested, isUrl, hasUrlTimeElement
+
+        // $success.find(`[${ quizPathAttribute } = "default"]`)
 
         // Continues logic. TODO:
         console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
@@ -1090,7 +1140,8 @@ function populateStylesObject( $element )
         autoResizeSuccessTimeMultiplier2: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier2Attribute) || autoResizeSuccessTimeMultiplier2Default ),
         maxSwipeScreenSize: parseInt( $element.attr(maxSwipeScreenSizeAttribute) || maxSwipeScreenSizeDefault ),
         minSwipeScreenSize: parseInt( $element.attr(minSwipeScreenSizeAttribute) || minSwipeScreenSizeDefault ),
-        leftRightKeyEventInfinityAllowed: $element.attr(leftRightKeyEventInfinityAllowedAttribute) || leftRightKeyEventInfinityAllowedDefault
+        leftRightKeyEventInfinityAllowed: $element.attr(leftRightKeyEventInfinityAllowedAttribute) || leftRightKeyEventInfinityAllowedDefault,
+        redirectMsTime: parseFloat( $element.attr(redirectMsTimeAttribute) || redirectMsTimeDefault )
     })
 
     // Iterate over created object
