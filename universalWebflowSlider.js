@@ -18,7 +18,12 @@ const snappingAttribute = 'bmg-data-snapping',
     autoCreateDotsAttribute = 'bmg-data-auto-create-dots',
     animationTimeAttribute = 'bmg-uwsc-animation-time',
     cssShowAttribute = 'bmg-data-css-show',
-    cssHideAttribute = 'bmg-data-css-hide'
+    cssHideAttribute = 'bmg-data-css-hide',
+    autoPadderAttribute = 'bmg-data-auto-padding',
+    modelContainerSelectorAttribute = 'bmg-data-model-container-selector',
+    modelPaddingSelectorAttribute = 'bmg-data-model-container-selector',
+    infinityModeAttribute = 'bmg-data-infinity-mode',
+    roundGapValueAttribute = 'bmg-data-round-gap-value'
 
 // Defaults
 const snappingDefault = 'true',
@@ -27,7 +32,12 @@ const snappingDefault = 'true',
     snapLastItemScreenSizeDefault = 479,
     animationTimeDefault = 350,
     cssShowDefault = { opacity: 1, cursor: 'pointer' },
-    cssHideDefault = { opacity: 0.5, cursor: 'default' }
+    cssHideDefault = { opacity: 0.5, cursor: 'default' },
+    autoPaddingDefault = 'false',
+    modelContainerSelectorDefault = '.container-large',
+    modelPaddingSelector = '.padding-global',
+    infinityModeDefault = 'false',
+    roundGapValueDefault = 'false'
     
 
 // + Main function +
@@ -48,13 +58,18 @@ function main()
             $currentDot = $nav.children().eq(0).css({ 'cursor': 'default' }).clone()
 
         // - Attributes -
-        let isSnapping = $slider.attr(snappingAttribute) || snappingDefault,
+        let isSnapping = ( $slider.attr(snappingAttribute) || snappingDefault ) == 'true',
             snappingDelay = parseFloat( $slider.attr( snappingDelayAttribute ) || snappingDelayDefault ),
             snapCallMultiplier = parseFloat( $slider.attr( snapCallMultiplierAttribute ) || snapCallMultiplierDefault ),
-            snapLastItemScreenSize = parseFloat( $slider.attr( snapLastItemScreenSizeAttribute ) || snapLastItemScreenSizeDefault )
+            snapLastItemScreenSize = parseFloat( $slider.attr( snapLastItemScreenSizeAttribute ) || snapLastItemScreenSizeDefault ),
             animationTime = parseFloat( $slider.attr( animationTimeAttribute ) || animationTimeDefault ),
             cssShow = getJsonAttrVals( $slider, cssShowAttribute, { ...cssShowDefault } ),
-            cssHide = getJsonAttrVals( $slider, cssHideAttribute, { ...cssHideDefault } )
+            cssHide = getJsonAttrVals( $slider, cssHideAttribute, { ...cssHideDefault } ),
+            isAutoPadding = ( $slider.attr(autoPadderAttribute) || autoPaddingDefault ) == 'true',
+            containerSelector = $slider.attr(modelContainerSelectorAttribute) || modelContainerSelectorDefault,
+            paddingSelector = $slider.attr(modelPaddingSelectorAttribute) || modelPaddingSelector,
+            isInfinityMode = ( $slider.attr(infinityModeAttribute) || infinityModeDefault ) == 'true',
+            isRoundGapValue = ( $slider.attr(roundGapValueAttribute) || roundGapValueDefault ) == 'true'
 
         // Set duration if not declared
         if (cssShow['duration'] == undefined) { cssShow['duration'] = animationTime / 1000 }
@@ -65,22 +80,46 @@ function main()
             currentDotClass = $currentDot.attr( 'class' )
 
         // - Variables -
-        let nOfSlides = $slides.length,
-            thisSlideIsCurrent = 0,
-            lastSrollableSlideIndex,
-            slideWidthElement,
-            paddingLeft,
-            paddingRight,
-            contentWidth,
-            gapValue,
-            animationTriggerType,
-            screenSize
+        let variablesObject =
+        {
+            nOfSlides: $slides.length,
+            thisSlideIsCurrent: 0,
+            animationTriggerType: ''
+        }
 
 
         // - - - Styling - - - 
-        gsap.set( $left[0], { ...cssHide, duration: 0 } )
-        if ( nOfSlides <= 1 ) { gsap.set( $right[0], { ...cssHide, duration: 0 } ) }
 
+        // - Auto padder -
+        if ( isAutoPadding )
+        {
+            // Elements
+            const $container = $(containerSelector).eq(0),
+                $padding = $(paddingSelector).eq(0)
+
+            // Functions
+            function padder()
+            {
+                // Values
+                let padding = ( $padding.outerWidth( true ) - $container.outerWidth() ) / 2
+    
+                // Action
+                $mask.css({ 'padding-left': padding, 'padding-right': padding })
+            }
+
+            // Initzialize
+            padder()
+            $( window ).resize( padder )
+        }
+        
+        
+        // Arrows
+        if ( !isInfinityMode )
+        {
+            gsap.set( $left[0], { ...cssHide, duration: 0 } )
+            if ( variablesObject.nOfSlides <= 1 ) { gsap.set( $right[0], { ...cssHide, duration: 0 } ) }
+        }
+        
 
         // - - - Funcitons - - -
 
@@ -90,7 +129,7 @@ function main()
             $nav.empty()
             $nav.append( $currentDot )
 
-            for ( let i = 1; i < nOfSlides; i++ )
+            for ( let i = 1; i < variablesObject.nOfSlides; i++ )
             {
                 $nav.append( $dot.clone() )
             }
@@ -99,40 +138,48 @@ function main()
         
 
         // - - Create calc values - on resize - -
-        function createCalcValues()
+        function createCalcValues( resized = false )
         { 
             // - Screen size -
-            screenSize = $(window).width()
+            variablesObject.screenSize = $(window).width()
             // - Populate slide widths -
             
             // Reset
-            slideWidthElement = []
+            variablesObject.slideWidthElement = []
 
             // Loop
             $slides.each(function(index)
             {
-                slideWidthElement.push({ single: $(this).outerWidth() })
+                variablesObject.slideWidthElement.push({ single: $(this).outerWidth() })
             })
 
             // - Calculate content width -
 
             // - Get padding values -
-            paddingLeft = parseFloat( $mask.css('padding-left') )
-            paddingRight = parseFloat( $mask.css('padding-right') )
+            variablesObject.paddingLeft = parseFloat( $mask.css('padding-left') )
+            variablesObject.paddingRight = parseFloat( $mask.css('padding-right') )
 
             // Reset
-            contentWidth = 0
+            variablesObject.contentWidth = 0
 
             // Loop
-            slideWidthElement.forEach(width => { contentWidth += width.single })
+            variablesObject.slideWidthElement.forEach(width => { variablesObject.contentWidth += width.single })
+
 
             // - Get gap value -
-            gapValue = Math.round( ( $mask[0].scrollWidth - contentWidth - paddingLeft - paddingRight ) / ( nOfSlides - 1 ) )
+
+            // Infinity mode variable
+            let infinityMultiplier = resized && isInfinityMode ? 4 : 1 
+
+            // Calculation
+            variablesObject.gapValue = ( $mask[0].scrollWidth - variablesObject.contentWidth * infinityMultiplier - variablesObject.paddingLeft - variablesObject.paddingRight ) / ( variablesObject.nOfSlides * infinityMultiplier - 1 )
+            if ( isRoundGapValue ) { variablesObject.gapValue = Math.round( variablesObject.gapValue ) }
+            
 
             // - Add joint value -
             let tmpJointValue = 0
 
-            slideWidthElement.forEach((width, index) => 
+            variablesObject.slideWidthElement.forEach((width, index) => 
             {
                 if ( !index )
                 {
@@ -140,33 +187,62 @@ function main()
                 }
                 else
                 {
-                    tmpJointValue+= width.single + gapValue
+                    tmpJointValue+= width.single + variablesObject.gapValue
                     width.joint = tmpJointValue
                 }
             })
 
             // - Update last scrollable dot -
-            let tmpScrollWidth = $mask[0].scrollWidth - $mask[0].clientWidth
-            
-            lastSrollableSlideIndex = returnSlideIndex( tmpScrollWidth, slideWidthElement )
-
-            $dots.each(function(index)
+            if ( !isInfinityMode )
             {
-                if ( index > lastSrollableSlideIndex )
+                let tmpScrollWidth = $mask[0].scrollWidth - $mask[0].clientWidth
+            
+                variablesObject.lastSrollableSlideIndex = returnSlideIndex( tmpScrollWidth, variablesObject )
+
+                $dots.each(function(index)
                 {
-                    gsap.set( $(this)[0], { ...cssHide } )
-                }
-                else
-                {
-                    gsap.set( $(this)[0], { ...cssShow } )
-                }
-            })
+                    if ( index > variablesObject.lastSrollableSlideIndex )
+                    {
+                        gsap.set( $(this)[0], { ...cssHide } )
+                    }
+                    else
+                    {
+                        gsap.set( $(this)[0], { ...cssShow } )
+                    }
+                })
+            }
+            else // If infitnity mode is on
+            {
+                variablesObject.calcContentWidth = variablesObject.contentWidth + variablesObject.gapValue * variablesObject.nOfSlides
+                variablesObject.infinityScrollMaxValue = variablesObject.calcContentWidth * 3
+                variablesObject.infinityScrollBaseValue = variablesObject.calcContentWidth * 2
+                variablesObject.infinityScrollMinValue = variablesObject.calcContentWidth * 1
+
+                $mask.scrollLeft( variablesObject.infinityScrollBaseValue )
+            }   
         }
 
         // Call
         createCalcValues()
-        $(window).resize(createCalcValues)
+        $(window).resize(() => { createCalcValues(true) })
 
+
+        // - - Initialize infinity mode - -
+        if ( isInfinityMode )
+        {
+            // Elements
+            let $slidesPrototype = $slides.clone().attr('bmg-element', 'Fake Slide')
+
+            // Create fake elements
+            $mask.prepend( $slidesPrototype )
+            $mask.prepend( $slidesPrototype.clone() )
+            $mask.append( $slidesPrototype.clone() )
+
+            // Re initiliaze webflow animations
+            Webflow.destroy();
+            Webflow.ready();
+            Webflow.require('ix2').init()
+        }
         
 
         // - - Scroll trigger - -
@@ -174,46 +250,59 @@ function main()
         
         $mask.scroll(function()
         {
-            // - Update thisSlideIsCurrent -
-            thisSlideIsCurrent = returnSlideIndex( $mask.scrollLeft(), slideWidthElement )
+            // - Update variablesObject.thisSlideIsCurrent -
+            variablesObject.thisSlideIsCurrent = returnSlideIndex( $mask.scrollLeft(), variablesObject, isInfinityMode )
 
             // - Update buttons styles -
-            if ( thisSlideIsCurrent <= 0 )
+            if ( !isInfinityMode )
             {
-                gsap.to( $left[0], cssHide )
-                if ( lastSrollableSlideIndex > 0 ) { gsap.to( $right[0], cssShow ) }
+                if ( variablesObject.thisSlideIsCurrent <= 0 )
+                {
+                    gsap.to( $left[0], cssHide )
+                    if ( variablesObject.lastSrollableSlideIndex > 0 ) { gsap.to( $right[0], cssShow ) }
+                }
+                else if ( variablesObject.thisSlideIsCurrent >= variablesObject.lastSrollableSlideIndex )
+                {
+                    gsap.to( $right[0], cssHide )
+                    if ( variablesObject.lastSrollableSlideIndex > 0 ) { gsap.to( $left[0], cssShow ) }
+                }
+                else
+                {
+                    gsap.to( $left[0], cssShow )
+                    gsap.to( $right[0], cssShow )
+                }
             }
-            else if ( thisSlideIsCurrent >= lastSrollableSlideIndex )
+            else // If infinity mode is on
             {
-                gsap.to( $right[0], cssHide )
-                if ( lastSrollableSlideIndex > 0 ) { gsap.to( $left[0], cssShow ) }
-            }
-            else
-            {
-                gsap.to( $left[0], cssShow )
-                gsap.to( $right[0], cssShow )
+                // Values
+                let scrollVal = $mask.scrollLeft()
+
+                if ( scrollVal >= variablesObject.infinityScrollMaxValue ) { $mask.scrollLeft( variablesObject.infinityScrollBaseValue ) }
+                else if ( scrollVal <= variablesObject.infinityScrollMinValue ) { $mask.scrollLeft( variablesObject.infinityScrollBaseValue ) }
             }
 
             // - Update current dot -
 
             // Style dots
             $dots.removeClass( currentDotClass ).addClass( dotClass ).css({ 'cursor': 'pointer' })
-            $dots.eq( thisSlideIsCurrent ).removeClass( dotClass ).addClass( currentDotClass ).css({ 'cursor': 'default' })
+            $dots.eq( variablesObject.thisSlideIsCurrent ).removeClass( dotClass ).addClass( currentDotClass ).css({ 'cursor': 'default' })
 
             // - Scroll snapping -
-            if ( isSnapping == 'true' )
+            if ( isSnapping )
             {
                 // Clear
                 clearTimeout(snapTimeOutVarialbe)
 
                 // Set
-                if ( screenSize <= snapLastItemScreenSize || thisSlideIsCurrent < lastSrollableSlideIndex ) 
+                if ( variablesObject.screenSize <= snapLastItemScreenSize || variablesObject.thisSlideIsCurrent < variablesObject.lastSrollableSlideIndex || isInfinityMode ) 
                 {
+                    /*
                     snapTimeOutVarialbe = setTimeout(() => 
                     {
-                        animationTriggerType = 'snap'
-                        scrollToItem( thisSlideIsCurrent, snapCallMultiplier )
+                        variablesObject.animationTriggerType = 'snap'
+                        scrollToItem( variablesObject.thisSlideIsCurrent, snapCallMultiplier )
                     }, snappingDelay)
+                    */
                 }
             }
         })
@@ -225,24 +314,24 @@ function main()
         // - Buttons -
         $left.click(() => 
         {
-            if ( animationTriggerType != 'button' ) { fastClickItterateInt = thisSlideIsCurrent }
+            if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
             fastClickItterateInt-- 
             
             if ( fastClickItterateInt >= 0 ) { scrollToItem( fastClickItterateInt ) }
             else { fastClickItterateInt = 0 }
 
-            animationTriggerType = 'button'
+            variablesObject.animationTriggerType = 'button'
         })
 
         $right.click(() => 
         {
-            if ( animationTriggerType != 'button' ) { fastClickItterateInt = thisSlideIsCurrent }
+            if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
             fastClickItterateInt++
             
-            if ( fastClickItterateInt <= lastSrollableSlideIndex ) { scrollToItem( fastClickItterateInt ) }
-            else { fastClickItterateInt = lastSrollableSlideIndex }
+            if ( fastClickItterateInt <= variablesObject.lastSrollableSlideIndex ) { scrollToItem( fastClickItterateInt ) }
+            else { fastClickItterateInt = variablesObject.lastSrollableSlideIndex }
 
-            animationTriggerType = 'button'
+            variablesObject.animationTriggerType = 'button'
         })
 
         // - dots -
@@ -250,7 +339,7 @@ function main()
         {
             $(this).click(() => 
             {
-                animationTriggerType = 'dot'
+                variablesObject.animationTriggerType = 'dot'
                 scrollToItem( index )
             })
         })
@@ -263,7 +352,7 @@ function main()
             clearTimeout(snapTimeOutVarialbe)
             
             // Animate
-            $mask.stop().animate( { scrollLeft: slideWidthElement[x].joint }, animationTime * snapCallMultiplierValue )
+            $mask.stop().animate( { scrollLeft: variablesObject.slideWidthElement[x].joint }, animationTime * snapCallMultiplierValue )
         }
     })
 }
@@ -272,14 +361,34 @@ function main()
 // + Helper functions +
 
 // - - - Return closest slide index - - -
-function returnSlideIndex( scrollPosition, slideWidthElement )
+function returnSlideIndex( scrollPosition, variablesObject = {}, isInfinityMode = false )
 {
     // Value
     let smallestValue,
         closestSlide
 
+    // Infinity mode logic
+    if ( isInfinityMode )
+    {
+        // Values
+        let sWE = variablesObject.slideWidthElement,
+            sWECalc = sWE[sWE.length -1].single / 2,
+            gapVal = variablesObject.gapValue,
+            cWidth = variablesObject.calcContentWidth
+            
+        // Give new base point a scroll width of 0
+        scrollPosition -= cWidth * 2 - sWECalc
+
+        // Switch values for negative scroll value
+        scrollPosition = scrollPosition < 0 ? cWidth + scrollPosition - sWECalc - gapVal : scrollPosition - sWECalc - gapVal
+
+        // Right scrolling recalculation
+        scrollPosition = scrollPosition >= cWidth - sWECalc ? 0 : scrollPosition
+    }
+    
+
     // Loop
-    slideWidthElement.forEach((width, index) => 
+    variablesObject.slideWidthElement.forEach((width, index) => 
     {
         // Logic
         if ( smallestValue == undefined ) // Case 0
