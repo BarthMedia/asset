@@ -461,20 +461,23 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     let hammer = Hammer( $formBlock[0] ),
         animationType = $formBlock.attr(swipeTypeAnimationAttribute)
 
-    // Init all swipe directions
-    hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
-
     // - Variations -
     if ( animationType == 'false' )
     {
     }
     else if ( animationType == 'to bottom' )
     {
+        // Init all swipe directions
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipedown', () => { findNext(true) })
     }
     else if ( animationType == 'to top' || animationType == 'vertical' )
     {
+        // Init all swipe directions
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+
         hammer.on('swipeup', () => { findNext(true) })
         hammer.on('swipedown', () => { goToPrevStep(true) })
     }
@@ -490,6 +493,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
     else if ( animationType == '4' || animationType == '270°' )
     {
+        // Init all swipe directions
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipeleft', () => { findNext(true) })
         hammer.on('swiperight', () => { findNext(true) })
@@ -497,6 +503,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
     else if ( animationType == '3' || animationType == '180°' )
     {
+        // Init all swipe directions
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipeleft', () => { findNext(true) })
         hammer.on('swiperight', () => { findNext(true) })
@@ -504,6 +513,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
     else if ( animationType == '2' || animationType == '90°' )
     {
+        // Init all swipe directions
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+
         hammer.on('swipeup', () => { goToPrevStep(true) })
         hammer.on('swipeleft', () => { findNext(true) })
         hammer.on('swiperight', () => { findNext(true) })
@@ -511,6 +523,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
     else // == 'none' || 1 || 'standard' || 0°
     {
+        // Init all swipe directions
+        hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL })
+        
         hammer.on('swipeup', () => { findNext(true) })
         hammer.on('swipeleft', () => { findNext(true) })
         hammer.on('swiperight', () => { goToPrevStep(true) })
