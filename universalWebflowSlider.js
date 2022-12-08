@@ -169,7 +169,7 @@ function main()
             // - Get gap value -
 
             // Infinity mode variable
-            let infinityMultiplier = resized && isInfinityMode ? 4 : 1 
+            let infinityMultiplier = resized && isInfinityMode ? 5 : 1 
 
             // Calculation
             variablesObject.gapValue = ( $mask[0].scrollWidth - variablesObject.contentWidth * infinityMultiplier - variablesObject.paddingLeft - variablesObject.paddingRight ) / ( variablesObject.nOfSlides * infinityMultiplier - 1 )
@@ -236,6 +236,7 @@ function main()
             // Create fake elements
             $mask.prepend( $slidesPrototype )
             $mask.prepend( $slidesPrototype.clone() )
+            $mask.append( $slidesPrototype.clone() )
             $mask.append( $slidesPrototype.clone() )
 
             // Re initiliaze webflow animations
@@ -316,6 +317,8 @@ function main()
         {
             if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
             fastClickItterateInt-- 
+
+            console.log('uff', fastClickItterateInt)
             
             if ( fastClickItterateInt >= 0 ) { scrollToItem( fastClickItterateInt ) }
             else { fastClickItterateInt = 0 }
@@ -327,6 +330,8 @@ function main()
         {
             if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
             fastClickItterateInt++
+
+            console.log('uff', fastClickItterateInt)
             
             if ( fastClickItterateInt <= variablesObject.lastSrollableSlideIndex ) { scrollToItem( fastClickItterateInt ) }
             else { fastClickItterateInt = variablesObject.lastSrollableSlideIndex }
@@ -348,11 +353,25 @@ function main()
         // - - Scroll to item x - -
         function scrollToItem( x, snapCallMultiplierValue = 1 )
         {
+            // Values
+            let sWE = variablesObject.slideWidthElement,
+                sWEJointCalc = sWE[sWE.length -1].joint,
+                gapVal = variablesObject.gapValue,
+                infinityPlus = isInfinityMode ? ( sWEJointCalc + sWE[sWE.length -1].single + gapVal ) * 2 : 0
+
+            // If infinity left
+            if ( isInfinityMode && Math.round( $mask.scrollLeft() ) < Math.round( infinityPlus ) )
+            {
+                infinityPlus /= 2
+                console.log(x, $mask.scrollLeft(), infinityPlus)
+                
+            }
+
             // Prevent double snapping
             clearTimeout(snapTimeOutVarialbe)
             
             // Animate
-            $mask.stop().animate( { scrollLeft: variablesObject.slideWidthElement[x].joint }, animationTime * snapCallMultiplierValue )
+            $mask.stop().animate( { scrollLeft: infinityPlus + sWE[x].joint }, animationTime * snapCallMultiplierValue )
         }
     })
 }
