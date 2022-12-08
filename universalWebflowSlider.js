@@ -356,11 +356,12 @@ function main()
             // Values
             let sWE = variablesObject.slideWidthElement,
                 sWEJointCalc = sWE[sWE.length -1].joint,
+                sWESingleCalc = sWE[sWE.length -1].single,
                 gapVal = variablesObject.gapValue,
-                infinityPlus = isInfinityMode ? ( sWEJointCalc + sWE[sWE.length -1].single + gapVal ) * 2 : 0
+                infinityPlus = isInfinityMode ? ( sWEJointCalc + sWESingleCalc + gapVal ) * 2 : 0
 
             // If infinity left
-            if ( isInfinityMode && Math.round( $mask.scrollLeft() ) < Math.round( infinityPlus ) )
+            if ( isInfinityMode && Math.round( $mask.scrollLeft() ) < Math.round( infinityPlus - sWESingleCalc / 2 - gapVal + 1 ) )
             {
                 infinityPlus /= 2
                 console.log(x, $mask.scrollLeft(), infinityPlus)
