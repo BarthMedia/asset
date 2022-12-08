@@ -577,6 +577,9 @@ function stepRequirementsPassed( $formBlock, $currentStep )
             // Throw error
             errorStatus( 'add', $radios, styleIndex )
 
+            // Prevent double clicking
+            $radios.off('click.stepRequirements')
+
             // Add clickevent
             $radios.on('click.stepRequirements', function()
             {
