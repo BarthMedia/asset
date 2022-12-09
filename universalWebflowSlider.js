@@ -23,7 +23,8 @@ const snappingAttribute = 'bmg-data-snapping',
     modelContainerSelectorAttribute = 'bmg-data-model-container-selector',
     modelPaddingSelectorAttribute = 'bmg-data-model-container-selector',
     infinityModeAttribute = 'bmg-data-infinity-mode',
-    roundGapValueAttribute = 'bmg-data-round-gap-value'
+    roundGapValueAttribute = 'bmg-data-round-gap-value',
+    infinityDuplicationsAttribute = 'bmg-data-infinity-duplications'
 
 // Defaults
 const snappingDefault = 'true',
@@ -37,7 +38,8 @@ const snappingDefault = 'true',
     modelContainerSelectorDefault = '.container-large',
     modelPaddingSelector = '.padding-global',
     infinityModeDefault = 'false',
-    roundGapValueDefault = 'false'
+    roundGapValueDefault = 'false',
+    infinityDuplicationsDefault = 2
     
 
 // + Main function +
@@ -69,7 +71,8 @@ function main()
             containerSelector = $slider.attr(modelContainerSelectorAttribute) || modelContainerSelectorDefault,
             paddingSelector = $slider.attr(modelPaddingSelectorAttribute) || modelPaddingSelector,
             isInfinityMode = ( $slider.attr(infinityModeAttribute) || infinityModeDefault ) == 'true',
-            isRoundGapValue = ( $slider.attr(roundGapValueAttribute) || roundGapValueDefault ) == 'true'
+            isRoundGapValue = ( $slider.attr(roundGapValueAttribute) || roundGapValueDefault ) == 'true',
+            infinityDuplications = parseInt( $slider.attr( infinityDuplicationsAttribute ) || infinityDuplicationsDefault )
 
         // Set duration if not declared
         if (cssShow['duration'] == undefined) { cssShow['duration'] = animationTime / 1000 }
@@ -169,7 +172,7 @@ function main()
             // - Get gap value -
 
             // Infinity mode variable
-            let infinityMultiplier = resized && isInfinityMode ? 5 : 1 
+            let infinityMultiplier = resized && isInfinityMode ? infinityDuplications * 2 + 1 : 1 
 
             // Calculation
             variablesObject.gapValue = ( $mask[0].scrollWidth - variablesObject.contentWidth * infinityMultiplier - variablesObject.paddingLeft - variablesObject.paddingRight ) / ( variablesObject.nOfSlides * infinityMultiplier - 1 )
@@ -214,9 +217,9 @@ function main()
             else // If infitnity mode is on
             {
                 variablesObject.calcContentWidth = variablesObject.contentWidth + variablesObject.gapValue * variablesObject.nOfSlides
-                variablesObject.infinityScrollMaxValue = variablesObject.calcContentWidth * 3
-                variablesObject.infinityScrollBaseValue = variablesObject.calcContentWidth * 2
-                variablesObject.infinityScrollMinValue = variablesObject.calcContentWidth * 1
+                variablesObject.infinityScrollMaxValue = variablesObject.calcContentWidth * ( infinityDuplications + 1 )
+                variablesObject.infinityScrollBaseValue = variablesObject.calcContentWidth * infinityDuplications
+                variablesObject.infinityScrollMinValue = variablesObject.calcContentWidth * ( infinityDuplications - 1 )
 
                 $mask.scrollLeft( variablesObject.infinityScrollBaseValue )
             }   
@@ -234,10 +237,11 @@ function main()
             let $slidesPrototype = $slides.clone().attr('bmg-element', 'Fake Slide')
 
             // Create fake elements
-            $mask.prepend( $slidesPrototype )
-            $mask.prepend( $slidesPrototype.clone() )
-            $mask.append( $slidesPrototype.clone() )
-            $mask.append( $slidesPrototype.clone() )
+            for ( let i = 0, n = infinityDuplications; i < n; i++ )
+            {
+                $mask.prepend( $slidesPrototype.clone() )
+                $mask.append( $slidesPrototype.clone() )
+            }
 
             // Re initiliaze webflow animations
             Webflow.destroy();
@@ -252,7 +256,7 @@ function main()
         $mask.scroll(function()
         {
             // - Update variablesObject.thisSlideIsCurrent -
-            variablesObject.thisSlideIsCurrent = returnSlideIndex( $mask.scrollLeft(), variablesObject, isInfinityMode )
+            variablesObject.thisSlideIsCurrent = returnSlideIndex( $mask.scrollLeft(), variablesObject, isInfinityMode, infinityDuplications )
 
             // - Update buttons styles -
             if ( !isInfinityMode )
@@ -297,13 +301,11 @@ function main()
                 // Set
                 if ( variablesObject.screenSize <= snapLastItemScreenSize || variablesObject.thisSlideIsCurrent < variablesObject.lastSrollableSlideIndex || isInfinityMode ) 
                 {
-                    /*
                     snapTimeOutVarialbe = setTimeout(() => 
                     {
                         variablesObject.animationTriggerType = 'snap'
                         scrollToItem( variablesObject.thisSlideIsCurrent, snapCallMultiplier )
                     }, snappingDelay)
-                    */
                 }
             }
         })
@@ -315,26 +317,44 @@ function main()
         // - Buttons -
         $left.click(() => 
         {
-            if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
-            fastClickItterateInt-- 
-
-            console.log('uff', fastClickItterateInt)
-            
-            if ( fastClickItterateInt >= 0 ) { scrollToItem( fastClickItterateInt ) }
-            else { fastClickItterateInt = 0 }
+            if ( !isInfinityMode )
+            {
+                if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
+                fastClickItterateInt--
+                
+                if ( fastClickItterateInt >= 0 ) { scrollToItem( fastClickItterateInt ) }
+                else { fastClickItterateInt = 0 }
+            }
+            else
+            {
+                fastClickItterateInt = variablesObject.thisSlideIsCurrent
+                fastClickItterateInt--
+                
+                if ( fastClickItterateInt >= 0 ) { scrollToItem( fastClickItterateInt ) }
+                else { fastClickItterateInt = 0 }
+            }
 
             variablesObject.animationTriggerType = 'button'
         })
 
         $right.click(() => 
         {
-            if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
-            fastClickItterateInt++
-
-            console.log('uff', fastClickItterateInt)
-            
-            if ( fastClickItterateInt <= variablesObject.lastSrollableSlideIndex ) { scrollToItem( fastClickItterateInt ) }
-            else { fastClickItterateInt = variablesObject.lastSrollableSlideIndex }
+            if ( !isInfinityMode )
+            {
+                if ( variablesObject.animationTriggerType != 'button' ) { fastClickItterateInt = variablesObject.thisSlideIsCurrent }
+                fastClickItterateInt++
+                
+                if ( fastClickItterateInt <= variablesObject.lastSrollableSlideIndex ) { scrollToItem( fastClickItterateInt ) }
+                else { fastClickItterateInt = variablesObject.lastSrollableSlideIndex }
+            }
+            else
+            {
+                fastClickItterateInt = variablesObject.thisSlideIsCurrent
+                fastClickItterateInt++
+                
+                if ( fastClickItterateInt <= variablesObject.nOfSlides -1 ) { scrollToItem( fastClickItterateInt ) }
+                else { fastClickItterateInt = variablesObject.nOfSlides -1 }
+            }
 
             variablesObject.animationTriggerType = 'button'
         })
@@ -351,21 +371,20 @@ function main()
 
 
         // - - Scroll to item x - -
-        function scrollToItem( x, snapCallMultiplierValue = 1 )
+        function scrollToItem( x, snapCallMultiplierValue = 1, goLeft = false )
         {
             // Values
             let sWE = variablesObject.slideWidthElement,
                 sWEJointCalc = sWE[sWE.length -1].joint,
                 sWESingleCalc = sWE[sWE.length -1].single,
                 gapVal = variablesObject.gapValue,
-                infinityPlus = isInfinityMode ? ( sWEJointCalc + sWESingleCalc + gapVal ) * 2 : 0
+                infinityPlusBaseVal = sWEJointCalc + sWESingleCalc + gapVal,
+                infinityPlus = isInfinityMode ? infinityPlusBaseVal * infinityDuplications : 0
 
             // If infinity left
-            if ( isInfinityMode && Math.round( $mask.scrollLeft() ) < Math.round( infinityPlus - sWESingleCalc / 2 - gapVal + 1 ) )
+            if ( isInfinityMode && ( Math.round( $mask.scrollLeft() ) < Math.round( infinityPlus - sWESingleCalc / 2 - gapVal + 1 ) || goLeft ) )
             {
-                infinityPlus /= 2
-                console.log(x, $mask.scrollLeft(), infinityPlus)
-                
+                infinityPlus -= infinityPlusBaseVal    
             }
 
             // Prevent double snapping
@@ -381,7 +400,7 @@ function main()
 // + Helper functions +
 
 // - - - Return closest slide index - - -
-function returnSlideIndex( scrollPosition, variablesObject = {}, isInfinityMode = false )
+function returnSlideIndex( scrollPosition, variablesObject = {}, isInfinityMode = false, infinityDuplications = 2 )
 {
     // Value
     let smallestValue,
@@ -397,7 +416,7 @@ function returnSlideIndex( scrollPosition, variablesObject = {}, isInfinityMode 
             cWidth = variablesObject.calcContentWidth
             
         // Give new base point a scroll width of 0
-        scrollPosition -= cWidth * 2 - sWECalc
+        scrollPosition -= cWidth * infinityDuplications - sWECalc
 
         // Switch values for negative scroll value
         scrollPosition = scrollPosition < 0 ? cWidth + scrollPosition - sWECalc - gapVal : scrollPosition - sWECalc - gapVal
