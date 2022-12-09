@@ -24,7 +24,8 @@ const snappingAttribute = 'bmg-data-snapping',
     modelPaddingSelectorAttribute = 'bmg-data-model-container-selector',
     infinityModeAttribute = 'bmg-data-infinity-mode',
     roundGapValueAttribute = 'bmg-data-round-gap-value',
-    infinityDuplicationsAttribute = 'bmg-data-infinity-duplications'
+    infinityDuplicationsAttribute = 'bmg-data-infinity-duplications',
+    resetIx2Attribute = 'bmg-data-reset-ix-2'
 
 // Defaults
 const snappingDefault = 'true',
@@ -39,7 +40,8 @@ const snappingDefault = 'true',
     modelPaddingSelector = '.padding-global',
     infinityModeDefault = 'false',
     roundGapValueDefault = 'false',
-    infinityDuplicationsDefault = 2
+    infinityDuplicationsDefault = 2,
+    resetIx2Default = 'false'
     
 
 // + Main function +
@@ -72,7 +74,8 @@ function main()
             paddingSelector = $slider.attr(modelPaddingSelectorAttribute) || modelPaddingSelector,
             isInfinityMode = ( $slider.attr(infinityModeAttribute) || infinityModeDefault ) == 'true',
             isRoundGapValue = ( $slider.attr(roundGapValueAttribute) || roundGapValueDefault ) == 'true',
-            infinityDuplications = parseInt( $slider.attr( infinityDuplicationsAttribute ) || infinityDuplicationsDefault )
+            infinityDuplications = parseInt( $slider.attr( infinityDuplicationsAttribute ) || infinityDuplicationsDefault ),
+            isResetIx2 = ( $slider.attr(resetIx2Attribute) || resetIx2Default ) == 'true'
 
         // Set duration if not declared
         if (cssShow['duration'] == undefined) { cssShow['duration'] = animationTime / 1000 }
@@ -244,9 +247,12 @@ function main()
             }
 
             // Re initiliaze webflow animations
-            Webflow.destroy();
-            Webflow.ready();
-            Webflow.require('ix2').init()
+            if ( isResetIx2 )
+            {
+                Webflow.destroy();
+                Webflow.ready();
+                Webflow.require('ix2').init()
+            }
         }
         
 
