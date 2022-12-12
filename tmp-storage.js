@@ -29,6 +29,7 @@ const radioSelector = '.w-radio',
 const formBlockindexAttribute = 'bmg-data-form-block-index',
     stepIndexAttribute = 'bmg-data-step-index',
     stepTypeAttribute = 'bmg-data-step-type',
+    stepRequiredAttribute = 'bmg-data-required',
     relativeLastStepAttribute = 'bmg-data-relative-last-step',
     conditionalAttribute = 'bmg-data-conditional',
     conditionalNextAttribute = 'bmg-data-conditional-next',
@@ -287,37 +288,6 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         }
     }
 
-
-    // - Select next button -
-    let isInfinity = stylesObject[formBlockIndex]['leftRightKeyEventInfinityAllowed'] == 'true' ? true : false
-    
-    function findNextButton( directionInt = 1 )
-    {
-        // Variables
-        let currentStepId = clickRecord[clickRecord.length -1].step, // Get current click record entry
-            object = stepLogicObject[currentStepId],
-            $currentStep = object.$, // find step with that id
-            buttonLength = $currentStep.find(`[${ clickElementIdAttribute }]`).length -1,
-            $clickedButton = $currentStep.find(`[${ markClickElementAttribute } = "true"]`), // find button with got clicked attribute
-            clickedButtonId = parseInt( $clickedButton.attr(clickElementIdAttribute) || -2 ),
-            x = clickedButtonId == -2 ? 0 : clickedButtonId + directionInt
-
-        // Logic
-        if ( isInfinity )
-        {
-            x = x > buttonLength ? 0 : x
-            x = x < 0 ? buttonLength : x
-        }
-        else
-        {
-            x = x > buttonLength ? buttonLength : x
-            x = x < 0 ? 0 : x
-        }
-        
-        // Action
-        selectButton( x, $currentStep, $formBlock )
-    }
-
     
     // - Go to next step -
     function goToNextStep( stepIndex, buttonIndex )
@@ -452,6 +422,37 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
 
 
+    // - Select next button -
+    let isInfinity = stylesObject[formBlockIndex]['leftRightKeyEventInfinityAllowed'] == 'true' ? true : false
+    
+    function findNextButton( directionInt = 1 )
+    {
+        // Variables
+        let currentStepId = clickRecord[clickRecord.length -1].step, // Get current click record entry
+            object = stepLogicObject[currentStepId],
+            $currentStep = object.$, // find step with that id
+            buttonLength = $currentStep.find(`[${ clickElementIdAttribute }]`).length -1,
+            $clickedButton = $currentStep.find(`[${ markClickElementAttribute } = "true"]`), // find button with got clicked attribute
+            clickedButtonId = parseInt( $clickedButton.attr(clickElementIdAttribute) || -2 ),
+            x = clickedButtonId == -2 ? 0 : clickedButtonId + directionInt
+
+        // Logic
+        if ( isInfinity )
+        {
+            x = x > buttonLength ? 0 : x
+            x = x < 0 ? buttonLength : x
+        }
+        else
+        {
+            x = x > buttonLength ? buttonLength : x
+            x = x < 0 ? 0 : x
+        }
+        
+        // Action
+        selectButton( x, $currentStep, $formBlock )
+    }
+
+
     // - - Handle mobile swipe gestures - -
 
     // Init
@@ -573,18 +574,32 @@ function stepRequirementsPassed( $formBlock, $currentStep )
 {
     // Variables
     let stepStype = $currentStep.attr(stepTypeAttribute),
+        isRequired = ( $currentStep.attr(stepRequiredAttribute) || 'true' ) == 'true'
         styleIndex = parseInt( $formBlock.attr(formBlockindexAttribute) )
+
+    // Required logic
+    if ( !isRequired ) { return true }
 
     // Logic
     if ( stepStype == 'empty' )
     {
         return true
     }
+    else if ( stepStype == 'checkbox' )
+    {
+        console.log(`Please continue to programm the required checking functionality for ${ stepStype } step types.`)
+        
+        return true
+    }
     else if ( stepStype == 'radio' )
     {
         // Elements
         let $radios = $currentStep.find( radioSelector ),
-            $checked = $radios.find( wRadioCheckedSelector )
+            $checked = $radios.find( wRadioCheckedSelector ),
+            $buttons = $currentStep.find( `[${ clickElementIdAttribute }]` )
+
+        // If buttons equal radios return true
+        if ( $buttons.hasClass( radioSelector.substring(1) ) ) { return true }
         
         // Logic
         if ( $checked.length == 0 )
@@ -614,6 +629,8 @@ function stepRequirementsPassed( $formBlock, $currentStep )
             return true
         }
     }
+
+    console.log(`Please continue to programm the required checking functionality for ${ stepStype } step types.`)
     
     console.log("TODO: Implement required checking. If error thrown, let left right event navigate through individual inputs -- enter & ecs should be functional in there as well.")
 
@@ -998,42 +1015,6 @@ function animateStepTransition( $currentStep, $nextStep, $form, devMode = 0 )
 }
 
 
-// - - Remove other steps - -
-function removeOtherSteps(stepObject, clickRecord, $element)
-{
-    // Local variables
-    let isAllowed = $element.attr(removeOtherStepsAttribute) || 'true',
-        removeArray = []
-
-    if (isAllowed == 'true')
-    {
-        stepObject.forEach(step => 
-        {
-            let stepInRecord = false,
-                stepIndex = step.step
-            
-            clickRecord.forEach(record => 
-            {
-                if ( stepIndex == record.step )
-                {
-                    stepInRecord = true
-                }
-            })
-
-            if ( step.isLast )
-            {
-                stepInRecord = true
-            }
-
-            if ( !stepInRecord )
-            {
-                step.$.remove()
-            }
-        })
-    }
-}
-
-
 // - - Create next steps object - -
 function creatNextStepObject( $steps )
 {
@@ -1132,85 +1113,39 @@ function markClickElement( $buttons, $button = false )
 }
 
 
-// - - Populate styles object - -
-function populateStylesObject( $element )
+// - - Remove other steps - -
+function removeOtherSteps(stepObject, clickRecord, $element)
 {
-    // Push initial values
-    stylesObject.push(
+    // Local variables
+    let isAllowed = $element.attr(removeOtherStepsAttribute) || 'true',
+        removeArray = []
+
+    if (isAllowed == 'true')
     {
-        animationMsTime: parseFloat( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
-        equalHeightTransitionSpeedMultiplier: parseFloat( $element.attr(equalHeightTransitionSpeedMultiplierAttribute) || equalHeightTransitionSpeedMultiplierDefault ),
-        cssShow: getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ),
-        cssHide: getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ),
-        cssActive: getJsonAttrVals( $element, cssActiveAttribute, cssActiveDefault ),
-        cssInactive: getJsonAttrVals( $element, cssInactiveAttribute, cssInactiveDefault ),
-        errorColor: $element.attr(errorColorAttribute) || errorColorDefault,
-        slideDirection: $element.attr(slideDirectionAttribute) || slideDirectionDefault,
-        customNextSlideIn: getJsonAttrVals( $element, customNextSlideInAttribute, customNextSlideInDefault ),
-        customNextSlideOut: getJsonAttrVals( $element, customNextSlideOutAttribute, customNextSlideOutDefault ), 
-        customPrevSlideIn: getJsonAttrVals( $element, customPrevSlideInAttribute, customPrevSlideInDefault ), 
-        customPrevSlideOut: getJsonAttrVals( $element, customPrevSlideOutAttribute, customPrevSlideOutDefault ),
-        customXMultiplier: parseFloat( $element.attr(customXMultiplierAttribute) || customXMultiplierDefault ),
-        customYMultiplier: parseFloat( $element.attr(customYMultiplierAttribute) || customYMultiplierDefault ),
-        autoResizeTimeMultiplier1: parseFloat( $element.attr(autoResizeTimeMultiplier1Attribute) || autoResizeTimeMultiplier1Default ),
-        autoResizeTimeMultiplier2: parseFloat( $element.attr(autoResizeTimeMultiplier2Attribute) || autoResizeTimeMultiplier2Default ),
-        autoResizeSuccessTimeMultiplier1: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier1Attribute) || autoResizeSuccessTimeMultiplier1Default ),
-        autoResizeSuccessTimeMultiplier2: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier2Attribute) || autoResizeSuccessTimeMultiplier2Default ),
-        maxSwipeScreenSize: parseInt( $element.attr(maxSwipeScreenSizeAttribute) || maxSwipeScreenSizeDefault ),
-        minSwipeScreenSize: parseInt( $element.attr(minSwipeScreenSizeAttribute) || minSwipeScreenSizeDefault ),
-        leftRightKeyEventInfinityAllowed: $element.attr(leftRightKeyEventInfinityAllowedAttribute) || leftRightKeyEventInfinityAllowedDefault,
-        redirectMsTime: parseFloat( $element.attr(redirectMsTimeAttribute) || redirectMsTimeDefault )
-    })
+        stepObject.forEach(step => 
+        {
+            let stepInRecord = false,
+                stepIndex = step.step
+            
+            clickRecord.forEach(record => 
+            {
+                if ( stepIndex == record.step )
+                {
+                    stepInRecord = true
+                }
+            })
 
-    // Iterate over created object
-    let styles = stylesObject[stylesObject.length -1],
-        cssShow = styles['cssShow'],
-        cssHide = styles['cssHide'],
-        cssActive = styles['cssActive'],
-        cssInactive = styles['cssInactive'],
-        customNextSlideIn = styles['customNextSlideIn'],
-        customNextSlideOut = styles['customNextSlideOut'],
-        customPrevSlideIn = styles['customPrevSlideIn'],
-        customPrevSlideOut = styles['customPrevSlideOut']
+            if ( step.isLast )
+            {
+                stepInRecord = true
+            }
 
-    // Format time ms time
-    styles['animationSTime'] = styles['animationMsTime'] / 1000
-
-    // Set duration if not declared
-    if (cssShow['duration'] == undefined) { cssShow['duration'] = styles['animationSTime'] }
-    if (cssHide['duration'] == undefined) { cssHide['duration'] = styles['animationSTime'] }
-    if (cssActive['duration'] == undefined) { cssActive['duration'] = styles['animationSTime'] }
-    if (cssInactive['duration'] == undefined) { cssInactive['duration'] = styles['animationSTime'] }
-    if (customNextSlideIn['duration'] == undefined) { customNextSlideIn['duration'] = styles['animationSTime'] }
-    if (customNextSlideOut['duration'] == undefined) { customNextSlideOut['duration'] = styles['animationSTime'] }
-    if (customPrevSlideIn['duration'] == undefined) { customPrevSlideIn['duration'] = styles['animationSTime'] }
-    if (customPrevSlideOut['duration'] == undefined) { customPrevSlideOut['duration'] = styles['animationSTime'] }
-
-    // Define submission time
-    styles['submitMsTime1'] = parseFloat( $element.attr(submitMsTime1Attribute) ) || styles['animationMsTime']
-    styles['submitMsTime2'] = parseFloat( $element.attr(submitMsTime2Attribute) ) || styles['animationMsTime']
-
-    // Define submit animation type
-    styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, cssHide )
-    styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, { ...cssShow, duration: styles['animationSTime'] * 1.5 } )
-
-    if (styles['submitHide']['duration'] == undefined) { styles['submitHide']['duration'] = styles['submitMsTime1'] / 1000 }
-    if (styles['submitShow']['duration'] == undefined) { styles['submitShow']['duration'] = styles['submitMsTime2'] / 1000 }
-
-    // Set css inactive
-    styles['setCssInactive'] = getJsonAttrVals( $element, setCssInactiveAttribute, cssInactive )
-    delete styles['setCssInactive'].duration
-
-    // Select / Deselect
-    styles['cssSelect'] = getJsonAttrVals( $element, cssSelectAttribute, cssActive )
-    styles['cssDeselect'] = getJsonAttrVals( $element, cssDeselectAttribute, cssInactive )
-
-    // Error status CSS cssErrorStatusResolved
-    styles['cssErrorStatus'] = getJsonAttrVals( $element, cssErrorStatusAttribute, { duration: styles['animationSTime'] } )
-    styles['cssErrorStatusResolved'] = getJsonAttrVals( $element, cssErrorStatusResolvedAttribute, { duration: styles['animationSTime'] } )
-
-    if (styles['cssErrorStatus']['borderColor'] == undefined) { styles['cssErrorStatus']['borderColor'] = styles['errorColor'] }
-    if (styles['cssErrorStatusResolved']['borderColor'] == undefined) { styles['cssErrorStatusResolved']['borderColor'] = '' }
+            if ( !stepInRecord )
+            {
+                step.$.remove()
+            }
+        })
+    }
 }
 
 
@@ -1326,6 +1261,8 @@ function defineStepType( $step, stepIndex, $formBlock )
 }
 
 
+// - - - Utils - - -
+
 // - - Return child elements - -
 function returnChildElements( $element, selector, eqValue = 'false', notSelector = 'false' )
 {
@@ -1434,6 +1371,88 @@ function returnDevModeIndex( $element )
     }) 
 
     return returnValue
+}
+
+
+// - - Populate styles object - -
+function populateStylesObject( $element )
+{
+    // Push initial values
+    stylesObject.push(
+    {
+        animationMsTime: parseFloat( $element.attr(animationMsTimeAttribute) || animationMsTimeDefault ),
+        equalHeightTransitionSpeedMultiplier: parseFloat( $element.attr(equalHeightTransitionSpeedMultiplierAttribute) || equalHeightTransitionSpeedMultiplierDefault ),
+        cssShow: getJsonAttrVals( $element, cssShowAttribute, cssShowDefault ),
+        cssHide: getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ),
+        cssActive: getJsonAttrVals( $element, cssActiveAttribute, cssActiveDefault ),
+        cssInactive: getJsonAttrVals( $element, cssInactiveAttribute, cssInactiveDefault ),
+        errorColor: $element.attr(errorColorAttribute) || errorColorDefault,
+        slideDirection: $element.attr(slideDirectionAttribute) || slideDirectionDefault,
+        customNextSlideIn: getJsonAttrVals( $element, customNextSlideInAttribute, customNextSlideInDefault ),
+        customNextSlideOut: getJsonAttrVals( $element, customNextSlideOutAttribute, customNextSlideOutDefault ), 
+        customPrevSlideIn: getJsonAttrVals( $element, customPrevSlideInAttribute, customPrevSlideInDefault ), 
+        customPrevSlideOut: getJsonAttrVals( $element, customPrevSlideOutAttribute, customPrevSlideOutDefault ),
+        customXMultiplier: parseFloat( $element.attr(customXMultiplierAttribute) || customXMultiplierDefault ),
+        customYMultiplier: parseFloat( $element.attr(customYMultiplierAttribute) || customYMultiplierDefault ),
+        autoResizeTimeMultiplier1: parseFloat( $element.attr(autoResizeTimeMultiplier1Attribute) || autoResizeTimeMultiplier1Default ),
+        autoResizeTimeMultiplier2: parseFloat( $element.attr(autoResizeTimeMultiplier2Attribute) || autoResizeTimeMultiplier2Default ),
+        autoResizeSuccessTimeMultiplier1: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier1Attribute) || autoResizeSuccessTimeMultiplier1Default ),
+        autoResizeSuccessTimeMultiplier2: parseFloat( $element.attr(autoResizeSuccessTimeMultiplier2Attribute) || autoResizeSuccessTimeMultiplier2Default ),
+        maxSwipeScreenSize: parseInt( $element.attr(maxSwipeScreenSizeAttribute) || maxSwipeScreenSizeDefault ),
+        minSwipeScreenSize: parseInt( $element.attr(minSwipeScreenSizeAttribute) || minSwipeScreenSizeDefault ),
+        leftRightKeyEventInfinityAllowed: $element.attr(leftRightKeyEventInfinityAllowedAttribute) || leftRightKeyEventInfinityAllowedDefault,
+        redirectMsTime: parseFloat( $element.attr(redirectMsTimeAttribute) || redirectMsTimeDefault )
+    })
+
+    // Iterate over created object
+    let styles = stylesObject[stylesObject.length -1],
+        cssShow = styles['cssShow'],
+        cssHide = styles['cssHide'],
+        cssActive = styles['cssActive'],
+        cssInactive = styles['cssInactive'],
+        customNextSlideIn = styles['customNextSlideIn'],
+        customNextSlideOut = styles['customNextSlideOut'],
+        customPrevSlideIn = styles['customPrevSlideIn'],
+        customPrevSlideOut = styles['customPrevSlideOut']
+
+    // Format time ms time
+    styles['animationSTime'] = styles['animationMsTime'] / 1000
+
+    // Set duration if not declared
+    if (cssShow['duration'] == undefined) { cssShow['duration'] = styles['animationSTime'] }
+    if (cssHide['duration'] == undefined) { cssHide['duration'] = styles['animationSTime'] }
+    if (cssActive['duration'] == undefined) { cssActive['duration'] = styles['animationSTime'] }
+    if (cssInactive['duration'] == undefined) { cssInactive['duration'] = styles['animationSTime'] }
+    if (customNextSlideIn['duration'] == undefined) { customNextSlideIn['duration'] = styles['animationSTime'] }
+    if (customNextSlideOut['duration'] == undefined) { customNextSlideOut['duration'] = styles['animationSTime'] }
+    if (customPrevSlideIn['duration'] == undefined) { customPrevSlideIn['duration'] = styles['animationSTime'] }
+    if (customPrevSlideOut['duration'] == undefined) { customPrevSlideOut['duration'] = styles['animationSTime'] }
+
+    // Define submission time
+    styles['submitMsTime1'] = parseFloat( $element.attr(submitMsTime1Attribute) ) || styles['animationMsTime']
+    styles['submitMsTime2'] = parseFloat( $element.attr(submitMsTime2Attribute) ) || styles['animationMsTime']
+
+    // Define submit animation type
+    styles['submitHide'] = getJsonAttrVals( $element, submitHideAttribute, cssHide )
+    styles['submitShow'] = getJsonAttrVals( $element, submitShowAttribute, { ...cssShow, duration: styles['animationSTime'] * 1.5 } )
+
+    if (styles['submitHide']['duration'] == undefined) { styles['submitHide']['duration'] = styles['submitMsTime1'] / 1000 }
+    if (styles['submitShow']['duration'] == undefined) { styles['submitShow']['duration'] = styles['submitMsTime2'] / 1000 }
+
+    // Set css inactive
+    styles['setCssInactive'] = getJsonAttrVals( $element, setCssInactiveAttribute, cssInactive )
+    delete styles['setCssInactive'].duration
+
+    // Select / Deselect
+    styles['cssSelect'] = getJsonAttrVals( $element, cssSelectAttribute, cssActive )
+    styles['cssDeselect'] = getJsonAttrVals( $element, cssDeselectAttribute, cssInactive )
+
+    // Error status CSS cssErrorStatusResolved
+    styles['cssErrorStatus'] = getJsonAttrVals( $element, cssErrorStatusAttribute, { duration: styles['animationSTime'] } )
+    styles['cssErrorStatusResolved'] = getJsonAttrVals( $element, cssErrorStatusResolvedAttribute, { duration: styles['animationSTime'] } )
+
+    if (styles['cssErrorStatus']['borderColor'] == undefined) { styles['cssErrorStatus']['borderColor'] = styles['errorColor'] }
+    if (styles['cssErrorStatusResolved']['borderColor'] == undefined) { styles['cssErrorStatusResolved']['borderColor'] = '' }
 }
 
 
