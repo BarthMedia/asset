@@ -29,7 +29,7 @@ $(wrapperSelector).each(function()
 
     // Attributes
     let max = parseFloat( $right.attr(maxAttribute) ),
-        min = parseFloat( $right.attr(minAttribute) || 0 )
+        min = parseFloat( $left.attr(minAttribute) || 0 )
 
     // Values
     let currentNumber = parseFloat( $number.text() )
