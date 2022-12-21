@@ -629,12 +629,46 @@ function stepRequirementsPassed( $formBlock, $currentStep )
             return true
         }
     }
+    else // Other input types
+    {
+        // Values
+        let returnTrue = true
 
-    console.log(`Please continue to programm the required checking functionality for ${ stepStype } step types.`)
-    
-    console.log("TODO: Implement required checking. If error thrown, let left right event navigate through individual inputs -- enter & ecs should be functional in there as well.")
+        // Elements
+        let $inputs = $currentStep.find('input')
 
-            // if ( stepRequirementsPassed( $formBlock, $currentStep ) ) { // Remove error styling and Go to next step / Else the function will mark the error }
+        // Reset
+        errorStatus( 'remove', $inputs, styleIndex )
+
+        // Loop
+        $inputs.each(function()
+        {
+            // Element
+            let $input = $(this)
+
+            // Logic
+            if ( $input.prop('required') )
+            {
+                if ( $inputs.val() == '' )
+                {
+                    // Throw error
+                    returnTrue = false
+                    errorStatus( 'add', $input, styleIndex )
+                }
+            }
+        })
+
+        // Logic
+        if ( returnTrue ) 
+        {
+            errorStatus( 'remove', $inputs, styleIndex )
+            return true
+        }
+        else
+        {
+            return false
+        }
+    }
 }
 
 
