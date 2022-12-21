@@ -61,6 +61,7 @@ $(wrapperSelector).each(function()
 function updateQuantity( $text, $value, value )
 {
     $text.text(value)
+    $value.val(value)
     $value.attr('value', value)
 }
 
