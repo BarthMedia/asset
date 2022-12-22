@@ -823,7 +823,7 @@ function performVisualSubmit( $formBlock, $form, devMode = 0, clickRecord = [] )
     // Dev mode logic
     if ( devMode < .5 ) // If dev mode is half or higher, do not:
     {
-        setTimeout( $form.submit(), submitTimeout )
+        setTimeout( () => { $form.submit() }, submitTimeout )
     }
     else
     {
