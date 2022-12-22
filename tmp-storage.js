@@ -347,9 +347,22 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     }
 
 
-    // - Submit Form -
+    // - - Submit Form - -
     function submitForm()
     {
+        // - Requirement logic -
+
+        // Variables
+        let currentStepId = clickRecord[clickRecord.length -1].step, // Get current click record entry
+            object = stepLogicObject[currentStepId],
+            $currentStep = object.$
+
+        // Request
+        if ( !stepRequirementsPassed( $formBlock, $currentStep ) )
+        {
+            return false // Break
+        }
+        
         // Turn off keyboard form navigation
         keyEventsAllowed = false
             
@@ -635,7 +648,7 @@ function stepRequirementsPassed( $formBlock, $currentStep )
         let returnTrue = true
 
         // Elements
-        let $inputs = $currentStep.find('input')
+        let $inputs = $currentStep.find('input, select')
 
         // Reset
         errorStatus( 'remove', $inputs, styleIndex )
@@ -649,7 +662,7 @@ function stepRequirementsPassed( $formBlock, $currentStep )
             // Logic
             if ( $input.prop('required') )
             {
-                if ( $inputs.val() == '' )
+                if ( $input.val() == '' )
                 {
                     // Throw error
                     returnTrue = false
@@ -1217,7 +1230,11 @@ function initActiveInactiveClickState( $elements, styleObjectIndex, $parent )
             let $element = $(this),
                 firstClick = true,
                 preventDoubleClick = false
-                
+
+            // Skip element if that is specified
+            if ( $element.attr(cssActiveAttribute) == 'none' ) { return true }
+
+            // Click event
             $element.click(() => 
             {
                 // Prevent double clicking
@@ -1261,7 +1278,7 @@ function defineStepType( $step, stepIndex, $formBlock )
     // Check for radio    
     if ( $radios.length > 0 )
     {
-        $step.attr(stepTypeAttribute, 'radio')
+        if ( $step.attr(stepTypeAttribute) == undefined ) { $step.attr(stepTypeAttribute, 'radio') }
         initActiveInactiveClickState( $radios, formBlockIndex, $step )
 
         // Make sure to remove accidental radio requires
@@ -1273,7 +1290,7 @@ function defineStepType( $step, stepIndex, $formBlock )
     // Check for checkbox
     if ( $checkboxes.length > 0 )
     {
-        $step.attr(stepTypeAttribute, 'checkbox')
+        if ( $step.attr(stepTypeAttribute) == undefined ) { $step.attr(stepTypeAttribute, 'checkbox') }
         initActiveInactiveClickState( $checkboxes, formBlockIndex, $step )
 
         return $buttons
@@ -1282,7 +1299,7 @@ function defineStepType( $step, stepIndex, $formBlock )
     // Check for checkbox
     if ( $inputs.length > 0 )
     {
-        $step.attr(stepTypeAttribute, 'other input')
+        if ( $step.attr(stepTypeAttribute) == undefined ) { $step.attr(stepTypeAttribute, 'other input') }
         initActiveInactiveClickState( $checkboxes, formBlockIndex, $step )
 
         return $buttons
