@@ -15,7 +15,8 @@ const formBlockSelctor = '[bmg-form = "Form Block"]',
     continueButtonSelector = '[bmg-form = "Continue Button"]',
     backwardsButtonSelector = '[bmg-form = "Backwards Button"]',
     notAButtonSelector = '[bmg-form = "Not a Button"]',
-    quizResultSelector = '[bmg-form = "Quiz Result"]'
+    quizResultSelector = '[bmg-form = "Quiz Result"]',
+    progressBarSelector = '[bmg-form = "Progress Bar"]'
 
 // Webflow classes
 const radioSelector = '.w-radio',
@@ -110,7 +111,9 @@ const cssShowAttribute = 'bmg-data-css-show',
     submitMsTime2Attribute = 'bmg-data-submit-ms-time-2',
     submitShowAttribute = 'bmg-data-submit-show',
     submitHideAttribute = 'bmg-data-submit-hide',
-    redirectMsTimeAttribute = 'bmg-data-redirect-ms-time'
+    redirectMsTimeAttribute = 'bmg-data-redirect-ms-time',
+    progressBarAnimationMsTimeAttribute = 'bmg-data-progress-bar-ms-time',
+    progressBarAxisAttribute = 'bmg-data-progress-bar-axis'
 
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
@@ -135,7 +138,8 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     autoResizeSuccessTimeMultiplier2Default = .85,
     maxSwipeScreenSizeDefault = 767,
     minSwipeScreenSizeDefault = 0,
-    redirectMsTimeDefault = 1
+    redirectMsTimeDefault = 1,
+    progressBarAxisDefault = 'x'
 
 // Styles object
 let stylesObject = []
@@ -174,7 +178,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         $backButton = $notForm.find( backwardsButtonSelector ),
         $nextButton = $notForm.find( continueButtonSelector ),
         backButtons = jqueryToJs( $backButton ),
-        nextButtons = jqueryToJs( $nextButton )
+        nextButtons = jqueryToJs( $nextButton ),
+        $progressBar = $formBlock.find( progressBarSelector ),
+        progressBars = jqueryToJs( $progressBar )
 
     // Glocal variables
     let clickRecord = [{step: 0}],
@@ -295,9 +301,38 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         $(this).click(() => { submitForm() })
     })
 
-    
+
     // - Create next step object -
     let stepLogicObject = creatNextStepObject( $steps )
+
+
+    // - Update progress bar
+
+    // Values
+    let pbAnimationtime = stylesObject[formBlockIndex]['progressBarAnimationSTime'],
+        pbAxis = stylesObject[formBlockIndex]['progressBarAxis'].toLowerCase()
+
+    // Function
+    function updateProgressBar( stepId = 0 )
+    {
+        // Security return check
+        if ( $progressBar.length < 1 ) return
+
+        // Values
+        let percentageDecimal = returnPathFloat( 'longest', clickRecord, stepLogicObject ) // Return longest path
+
+        // Axis logic
+        if ( ['x', 'x, y', 'y, x'].includes( pbAxis )  ) // X axis animation
+        {
+            console.log("x -- I am getting called", percentageDecimal, pbAnimationtime)
+        }
+
+        if ( ['y', 'x, y', 'y, x'].includes( pbAxis )  ) // Y axis animation
+        {
+            console.log("y -- I am getting called")
+        }
+    }
+    updateProgressBar() // Initialize
 
 
     // - Find next -
@@ -345,9 +380,6 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         // Variable
         let nextStepId = stepLogicObject[stepIndex].buttons[buttonIndex].nextStepId
 
-        // Update next button
-        updateNextButton( nextStepId )
-
         // Activate back button
         gsap.to(backButtons, stylesObject[formBlockIndex]['cssBackForthActive'])
 
@@ -370,6 +402,12 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             // Call transition animation
             animateStepTransition( $currentStep, $nextStep, $form, devMode )
         }
+
+        // Update next button
+        updateNextButton( nextStepId )
+
+        // Update progres bar
+        updateProgressBar( nextStepId )
 
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
@@ -406,6 +444,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
         // Update next button
         updateNextButton( prevStepId )
+
+        // Update progres bar
+        updateProgressBar( prevStepId )
 
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
@@ -1575,6 +1616,99 @@ function populateStylesObject( $element )
 
     if (styles['cssErrorStatus']['borderColor'] == undefined) { styles['cssErrorStatus']['borderColor'] = styles['errorColor'] }
     if (styles['cssErrorStatusResolved']['borderColor'] == undefined) { styles['cssErrorStatusResolved']['borderColor'] = '' }
+
+    // Progress bar
+    styles['progressBarAnimationSTime'] = parseFloat( $element.attr(progressBarAnimationMsTimeAttribute) || styles['animationMsTime'] ) / 1000
+    styles['progressBarAxis'] = $element.attr(progressBarAxisAttribute) || progressBarAxisDefault
+}
+
+
+// - - Progress bar functions - -
+
+
+// - Return longest or shortest path -
+function returnPathFloat( mode, clickRecord, stepLogicObject )
+{
+    mode = 'shortest'
+
+    
+    // Logic
+    if ( mode == 'shortest' )
+    {
+        
+    }
+    
+    // Values
+    let latestRecordId = clickRecord[clickRecord.length - 1].step,
+        clickRecordLength = clickRecord.length,
+        min = stepLogicObject.length,
+        max = 0,
+        count = 0,
+        currentLoopIndex = 0
+
+    // console.log(mode, clickRecord, stepLogicObject, latestRecordId, stepLogicObject[latestRecordId])
+
+    // Loop for longest path
+
+
+    
+    
+
+    // Loop function
+    function objectLoop( object )
+    {
+        // Math
+        count++
+
+        if ( object.isLast )
+        {
+            // Update values
+            max = Math.max(max, count)
+            min = Math.min(min, count)
+            count = 0
+
+            console.log('I looped!', max, min)
+
+            // Security conditional
+            return
+        }
+
+        // Values
+        let array = returnNextStepIds( object )
+
+
+        // Action
+        array.forEach((id, index) => 
+        {
+            // Indicate loop
+            
+            console.log(array, id, object.step)
+            
+            objectLoop( stepLogicObject[id] )
+        })
+    }
+
+    // Intiliaze loop
+    objectLoop( stepLogicObject[latestRecordId] )
+        
+
+    // Return buttons
+    function returnNextStepIds( object )
+    {
+        // Value
+        let arr = []
+        
+        object.buttons.forEach(button => 
+        {
+            if ( arr.indexOf(button.nextStepId) === -1 )
+            {
+                arr.push(button.nextStepId)
+            }
+        })
+
+        // Return
+        return arr
+    }
 }
 
 
