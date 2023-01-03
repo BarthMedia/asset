@@ -1629,17 +1629,6 @@ function populateStylesObject( $element )
 // - Return longest or shortest path -
 function returnPathFloat( mode, clickRecord, stepLogicObject )
 {
-    mode = 'shortest'
-
-    
-    // Logic
-    if ( mode == 'shortest' )
-    {
-        
-    }
-
-    
-    
     // Values
     let latestRecordId = clickRecord[clickRecord.length - 1].step,
         clickRecordLength = clickRecord.length,
@@ -1723,7 +1712,18 @@ function returnPathFloat( mode, clickRecord, stepLogicObject )
     min += clickRecordLength
     max += clickRecordLength
 
-    console.log(min, max)
+    
+    // Logic
+    if ( mode == 'shortest' )
+    {
+        let x = clickRecordLength / min
+        console.log(x * 100)
+    }
+    else
+    {
+        let x = clickRecordLength / max
+        console.log(x * 100)
+    }
 }
 
 
