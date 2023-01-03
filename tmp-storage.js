@@ -82,6 +82,8 @@ const cssShowAttribute = 'bmg-data-css-show',
     cssHideAttribute = 'bmg-data-css-hide',
     cssActiveAttribute = 'bmg-data-css-active',
     cssInactiveAttribute = 'bmg-data-css-inactive',
+    cssBackForthActiveAttribute = 'bmg-data-back-forth-css-active',
+    cssBackForthInactiveAttribute = 'bmg-data-back-forth-css-inactive',
     setCssInactiveAttribute = 'bmg-data-set-css-inactive',
     cssSelectAttribute = 'bmg-data-css-select',
     cssDeselectAttribute = 'bmg-data-css-deselect',
@@ -115,6 +117,8 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     cssHideDefault = { opacity: 0, display: 'none' },
     cssActiveDefault = { opacity: 1, duration: .1 },
     cssInactiveDefault = { opacity: .5, duration: .1 },
+    cssBackForthActiveDefault = { opacity: 1 },
+    cssBackForthInactiveDefault = { opacity: .5 },
     animationMsTimeDefault = 500,
     equalHeightTransitionSpeedMultiplierDefault = 0.25,
     errorColorDefault = 'red',
@@ -165,7 +169,12 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         $form = returnChildElements( $formBlock, formSelctor, 0 ),
         $steps = returnChildElements( $form, stepSelctor, 'false', `${ dividerSelctor }, ${ quizResultSelector }` ),
         $backwardsButtons = $form.find( backwardsButtonSelector ),
-        $submitButtons = $form.find( submitButtonSelector )
+        $submitButtons = $form.find( submitButtonSelector ),
+        $notForm = $formBlock.children().not($form),
+        $backButton = $notForm.find( backwardsButtonSelector ),
+        $nextButton = $notForm.find( continueButtonSelector ),
+        backButtons = jqueryToJs( $backButton ),
+        nextButtons = jqueryToJs( $nextButton )
 
     // Glocal variables
     let clickRecord = [{step: 0}],
@@ -191,6 +200,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     {
         console.log(`Dev mode ${ devMode }: Visual dividers not removed...`)
     }
+
+    // Inactivate back and forth buttons
+    gsap.set([backButtons, nextButtons], { ...stylesObject[formBlockIndex]['cssBackForthInactive'], duration: 0 } )
 
     
     // - - - Glocal functions - - -
@@ -242,10 +254,39 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 
     // - Backwards buttons -
-    $backwardsButtons.each(function()
+    $backwardsButtons.add( $backButton ).each(function()
     {
         $(this).click(() => { goToPrevStep() })
     })
+
+
+    // - Next button(s) -
+    $nextButton.each(function()
+    {
+        $(this).click(() => { findNext() })
+    })
+
+    
+    // - Update next button -
+    function updateNextButton( stepId )
+    {
+        // Security return check
+        if ( $nextButton.length < 1 ) return
+        
+        // Elements
+        let $step = $form.find(`[${ stepIndexAttribute } = "${ stepId }"]`),
+            $clickedButton = $step.find(`[${ markClickElementAttribute } = "true"]`)
+
+        // Action logic
+        if ( $clickedButton.length > 0 ) // If a clicked button exists
+        {
+            gsap.to(nextButtons, stylesObject[formBlockIndex]['cssBackForthActive'])
+        }
+        else
+        {
+            gsap.to(nextButtons, stylesObject[formBlockIndex]['cssBackForthInactive'])
+        }
+    }
 
 
     // - Submit buttons -
@@ -281,10 +322,19 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             {
                 goToNextStep( currentStepId, clickedButtonId )
             }
+            else // Requirements not passed
+            {
+                // Update next button
+                updateNextButton( currentStepId )
+            }
         }
         else
         {
+            // Select button number 1
             selectButton( 0, $currentStep, $formBlock )
+            
+            // Update next button
+            updateNextButton( currentStepId )
         }
     }
 
@@ -294,6 +344,12 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     {
         // Variable
         let nextStepId = stepLogicObject[stepIndex].buttons[buttonIndex].nextStepId
+
+        // Update next button
+        updateNextButton( nextStepId )
+
+        // Activate back button
+        gsap.to(backButtons, stylesObject[formBlockIndex]['cssBackForthActive'])
 
         // Submit if last step
         if ( stepLogicObject[stepIndex].isLast )
@@ -341,6 +397,15 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             clickRecord.pop() // Remove last element
             animateStepTransition( $currentStep, $prevStep, $form, devMode )
         }
+        
+        if ( clickRecord.length <= 2 && $backButton.length > 0 ) // Is approaching first step
+        {
+            // Inactivate back button
+            gsap.to(backButtons, stylesObject[formBlockIndex]['cssBackForthInactive'])
+        }
+
+        // Update next button
+        updateNextButton( prevStepId )
 
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
@@ -1437,6 +1502,8 @@ function populateStylesObject( $element )
         cssHide: getJsonAttrVals( $element, cssHideAttribute, cssHideDefault ),
         cssActive: getJsonAttrVals( $element, cssActiveAttribute, cssActiveDefault ),
         cssInactive: getJsonAttrVals( $element, cssInactiveAttribute, cssInactiveDefault ),
+        cssBackForthActive: getJsonAttrVals( $element, cssBackForthActiveAttribute, cssBackForthActiveDefault ),
+        cssBackForthInactive: getJsonAttrVals( $element, cssBackForthInactiveAttribute, cssBackForthInactiveDefault ),
         errorColor: $element.attr(errorColorAttribute) || errorColorDefault,
         slideDirection: $element.attr(slideDirectionAttribute) || slideDirectionDefault,
         customNextSlideIn: getJsonAttrVals( $element, customNextSlideInAttribute, customNextSlideInDefault ),
@@ -1459,6 +1526,8 @@ function populateStylesObject( $element )
     let styles = stylesObject[stylesObject.length -1],
         cssShow = styles['cssShow'],
         cssHide = styles['cssHide'],
+        cssBackForthActive = styles['cssBackForthActive'],
+        cssBackForthInactive = styles['cssBackForthInactive'],
         cssActive = styles['cssActive'],
         cssInactive = styles['cssInactive'],
         customNextSlideIn = styles['customNextSlideIn'],
@@ -1472,6 +1541,8 @@ function populateStylesObject( $element )
     // Set duration if not declared
     if (cssShow['duration'] == undefined) { cssShow['duration'] = styles['animationSTime'] }
     if (cssHide['duration'] == undefined) { cssHide['duration'] = styles['animationSTime'] }
+    if (cssBackForthActive['duration'] == undefined) { cssBackForthActive['duration'] = styles['animationSTime'] }
+    if (cssBackForthInactive['duration'] == undefined) { cssBackForthInactive['duration'] = styles['animationSTime'] }
     if (cssActive['duration'] == undefined) { cssActive['duration'] = styles['animationSTime'] }
     if (cssInactive['duration'] == undefined) { cssInactive['duration'] = styles['animationSTime'] }
     if (customNextSlideIn['duration'] == undefined) { customNextSlideIn['duration'] = styles['animationSTime'] }
