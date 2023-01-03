@@ -1637,6 +1637,8 @@ function returnPathFloat( mode, clickRecord, stepLogicObject )
     {
         
     }
+
+    
     
     // Values
     let latestRecordId = clickRecord[clickRecord.length - 1].step,
@@ -1644,22 +1646,29 @@ function returnPathFloat( mode, clickRecord, stepLogicObject )
         min = stepLogicObject.length,
         max = 0,
         count = 0,
-        currentLoopIndex = 0
-
-    // console.log(mode, clickRecord, stepLogicObject, latestRecordId, stepLogicObject[latestRecordId])
-
-    // Loop for longest path
-
+        tmpCount = 0,
+        currentLoopIndex = 0,
+        treeArray = []
 
     
-    
-
     // Loop function
     function objectLoop( object )
     {
+        // Values
+        let array = returnNextStepIds( object )
+        
         // Math
         count++
+        tmpCount++
 
+        // Handle multi steps logic
+        if ( array.length > 1 ) // a tree split
+        {
+            treeArray.push(tmpCount)
+            tmpCount = 0
+        }
+
+        // Update values
         if ( object.isLast )
         {
             // Update values
@@ -1667,30 +1676,26 @@ function returnPathFloat( mode, clickRecord, stepLogicObject )
             min = Math.min(min, count)
             count = 0
 
-            console.log('I looped!', max, min)
+            // Add base value to tree
+            treeArray.forEach(n => 
+            {
+                count += n
+            })
+
+            // Trim back a leaf
+            treeArray.pop()
 
             // Security conditional
             return
         }
 
-        // Values
-        let array = returnNextStepIds( object )
-
-
-        // Action
+        // Action loop
         array.forEach((id, index) => 
         {
-            // Indicate loop
-            
-            console.log(array, id, object.step)
-            
+            // Iniciate loop
             objectLoop( stepLogicObject[id] )
         })
     }
-
-    // Intiliaze loop
-    objectLoop( stepLogicObject[latestRecordId] )
-        
 
     // Return buttons
     function returnNextStepIds( object )
@@ -1709,6 +1714,16 @@ function returnPathFloat( mode, clickRecord, stepLogicObject )
         // Return
         return arr
     }
+
+    // Intiliaze loop
+    objectLoop( stepLogicObject[latestRecordId] )
+
+
+    // Finetune math values
+    min += clickRecordLength
+    max += clickRecordLength
+
+    console.log(min, max)
 }
 
 
