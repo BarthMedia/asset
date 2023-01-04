@@ -1,5 +1,4 @@
-(() => {
-/* Start of: BMG - Universal multistep forms script */
+(() => { /* Start of: BMG - Universal multistep forms script */
 
 // + Global strings +
 
@@ -402,13 +401,13 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
             // Call transition animation
             animateStepTransition( $currentStep, $nextStep, $form, devMode )
+
+            // Update next button
+            updateNextButton( nextStepId )
+
+            // Update progres bar
+            updateProgressBar()
         }
-
-        // Update next button
-        updateNextButton( nextStepId )
-
-        // Update progres bar
-        updateProgressBar()
 
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
@@ -481,6 +480,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
         // Update progress bar
         updateProgressBar( true )
+
+        // Hide back & next buttons
+        gsap.to([backButtons, nextButtons], stylesObject[formBlockIndex]['cssHide'])
 
         // Submit
         performVisualSubmit( $formBlock, $form, devMode )
@@ -1757,5 +1759,4 @@ function loadGsap() {
         : main();
 }
 
-/* End of: BMG - Universal multistep forms script */
-})()
+})() /* End of: BMG - Universal multistep forms script */
