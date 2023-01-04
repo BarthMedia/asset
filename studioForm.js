@@ -25,8 +25,7 @@ const radioSelector = '.w-radio',
     checkboxSelector = '.w-checkbox',
     wButtonSelector = '.w-button',
     successSelector = '.w-form-done',
-    conditionInvisibleSelector = '.w-condition-invisible',
-    wRadioCheckedSelector = '.w--redirected-checked'
+    conditionInvisibleSelector = '.w-condition-invisible'
 
 // Functional attribues
 const formBlockindexAttribute = 'bmg-data-form-block-index',
@@ -39,6 +38,7 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     conditionalNextAttribute = 'bmg-data-conditional-next',
     notAutoContinueAttribute = 'bmg-data-not-auto-continue',
     markClickElementAttribute = 'bmg-data-click-element',
+    elementGotCheckedAttribute = 'bmg-data-element-checked',
     clickElementIdAttribute = 'bmg-data-click-element-id',
     removeOtherStepsAttribute = 'bmg-data-remove-other-steps',
     autoFocusAttribute = 'bmg-data-autofocus',
@@ -120,7 +120,8 @@ const cssShowAttribute = 'bmg-data-css-show',
     anchorMinScreenSizeAttribute = 'bmg-data-anchor-min-screen-size',
     anchorMaxScreenSizeAttribute = 'bmg-data-anchor-max-screen-size',
     anchorAnimationMsTimeAttribute = 'bmg-data-anchor-animation-ms-time',
-    anchorYOffsetSelectorAttribute = 'bmg-data-anchor-y-offset-selector'
+    anchorYOffsetSelectorAttribute = 'bmg-data-anchor-y-offset-selector',
+    anchorRelatedElementToScrollSelectorAttribute = 'bmg-data-anchor-related-element-to-scroll-selector'
 
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
@@ -353,8 +354,11 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         anchorAnimationTime = stylesObject[formBlockIndex]['anchorAnimationSTime'],
         anchorYOffsetSelector = $anchor.attr( anchorYOffsetSelectorAttribute )
 
-    // Element
-    let $anchorYOffset = $(anchorYOffsetSelector)
+    // Elements
+    let $anchorYOffset = $(anchorYOffsetSelector),
+        anchorScrollTarget = document.querySelectorAll( $anchor.attr( anchorRelatedElementToScrollSelectorAttribute ) )
+
+    anchorScrollTarget = anchorScrollTarget.length > 0 ? anchorScrollTarget : window // Give webflower full customizability
 
     // Dom preperation
     $anchor.attr('id', `anchor-element-${ formBlockIndex }`)
@@ -371,7 +375,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             // If within specified scren size
             if ( width <= anchorMaxScreenSize && width >= anchorMinScreenSize)
             {
-                gsap.to(window, { scrollTo: { y: `#anchor-element-${ formBlockIndex }`, offsetY: height }, duration: anchorAnimationTime })
+                gsap.to(anchorScrollTarget, { scrollTo: { y: `#anchor-element-${ formBlockIndex }`, offsetY: height }, duration: anchorAnimationTime })
             }
         }
     }
@@ -755,15 +759,50 @@ function stepRequirementsPassed( $formBlock, $currentStep, mode = '100%' )
     }
     else if ( stepStype == 'checkbox' )
     {
-        if ( mode == '100%' ) console.log(`Please continue to programm the required checking functionality for ${ stepStype } step types.`)
-        
-        return true
+        // Elements
+        let $checkboxes = $currentStep.find( checkboxSelector )
+
+        // Values
+        let checkedBoxExists = false
+
+        // Logic loop
+        $checkboxes.each(function()
+        {
+            if ( $(this).attr( elementGotCheckedAttribute ) != undefined ) checkedBoxExists = true
+        })
+
+        // Return result
+        if ( checkedBoxExists )
+        {
+            return true
+        }
+        else
+        {
+            // Throw error
+            if ( mode == '100%' ) errorStatus( 'add', $checkboxes, styleIndex )
+
+            // Prevent double clicking
+            if ( mode == '100%' ) $checkboxes.off('click.stepRequirements')
+
+            // Add clickevent
+            if ( mode == '100%' ) $checkboxes.on('click.stepRequirements', function()
+            {
+                // Remove error
+                errorStatus( 'remove', $checkboxes, styleIndex )
+
+                // Remove clickevent
+                $checkboxes.off('click.stepRequirements')
+            })
+
+            // Return
+            return false
+        }
     }
     else if ( stepStype == 'radio' )
     {
         // Elements
         let $radios = $currentStep.find( radioSelector ),
-            $checked = $radios.find( wRadioCheckedSelector ),
+            $checked = $currentStep.find( `[${ elementGotCheckedAttribute }]` ),
             $buttons = $currentStep.find( `[${ clickElementIdAttribute }]` )
 
         // If buttons equal radios return true
@@ -941,6 +980,110 @@ function initQuizMode( $formBlock, clickRecord )
 
         // Continues logic. TODO:
         console.log('Todo: Set up quiz mode funcitonality. Url functionality, nested forms, etc.') // Control quizmode functionality.
+    }
+}
+
+
+// - - Progress bar functions - -
+
+
+// - Return longest or shortest path -
+function returnPathFloat( mode, clickRecord, stepLogicObject )
+{
+    // Values
+    let latestRecordId = clickRecord[clickRecord.length - 1].step,
+        clickRecordLength = clickRecord.length,
+        min = stepLogicObject.length,
+        max = 0,
+        count = 0,
+        tmpCount = 0,
+        currentLoopIndex = 0,
+        treeArray = []
+
+    
+    // Loop function
+    function objectLoop( object )
+    {
+        // Values
+        let array = returnNextStepIds( object )
+        
+        // Math
+        count++
+        tmpCount++
+
+        // Handle multi steps logic
+        if ( array.length > 1 ) // a tree split
+        {
+            treeArray.push(tmpCount)
+            tmpCount = 0
+        }
+
+        // Update values
+        if ( object.isLast )
+        {
+            // Update values
+            max = Math.max(max, count)
+            min = Math.min(min, count)
+            count = 0
+
+            // Add base value to tree
+            treeArray.forEach(n => 
+            {
+                count += n
+            })
+
+            // Trim back a leaf
+            treeArray.pop()
+
+            // Security conditional
+            return
+        }
+
+        // Action loop
+        array.forEach((id, index) => 
+        {
+            // Iniciate loop
+            objectLoop( stepLogicObject[id] )
+        })
+    }
+
+    // Return buttons
+    function returnNextStepIds( object )
+    {
+        // Value
+        let arr = []
+        
+        object.buttons.forEach(button => 
+        {
+            if ( arr.indexOf(button.nextStepId) === -1 )
+            {
+                arr.push(button.nextStepId)
+            }
+        })
+
+        // Return
+        return arr
+    }
+
+    // Intiliaze loop
+    objectLoop( stepLogicObject[latestRecordId] )
+
+
+    // Finetune math values
+    min += clickRecordLength
+    max += clickRecordLength
+
+    
+    // Logic
+    if ( mode == 'shortest' )
+    {
+        let x = clickRecordLength / min
+        return x * 100
+    }
+    else
+    {
+        let x = clickRecordLength / max
+        return x * 100
     }
 }
 
@@ -1388,8 +1531,13 @@ function initActiveInactiveClickState( $elements, styleObjectIndex, $parent )
                 
             $element.click(() => 
             {
+                // Animation
                 gsap.to( elements, cssInactive )
                 gsap.to( $element[0], cssActive )
+
+                // Attributes
+                $elements.removeAttr( elementGotCheckedAttribute )
+                $element.attr( elementGotCheckedAttribute, true )
             })
         })
     }
@@ -1415,12 +1563,24 @@ function initActiveInactiveClickState( $elements, styleObjectIndex, $parent )
                     // Call checkbox click logic
                     if (firstClick)
                     {
-                        $element.css( cssActive )
+                        // Animation
+                        gsap.to( $element[0], cssActive )
+
+                        // Attributes
+                        $element.attr( elementGotCheckedAttribute, true )
+
+                        // Logic
                         firstClick = false // Int 2nd click
                     }
                     else // Reset
                     {
-                        $element.css( cssInactive )
+                        // Animation
+                        gsap.to( $element[0], cssInactive )
+
+                        // Attributes
+                        $element.removeAttr( elementGotCheckedAttribute )
+
+                        // Logic
                         firstClick = true
                     }
                 }
@@ -1462,6 +1622,9 @@ function defineStepType( $step, stepIndex, $formBlock )
     {
         if ( $step.attr(stepTypeAttribute) == undefined ) { $step.attr(stepTypeAttribute, 'checkbox') }
         initActiveInactiveClickState( $checkboxes, formBlockIndex, $step )
+
+        // Make sure to remove accidental checkbox requires (for full checkbox steps only)
+        if ( $step.attr(stepTypeAttribute) == 'checkbox' ) { $checkboxes.find('input').removeAttr('required') }
 
         return $buttons
     }
@@ -1531,15 +1694,17 @@ function jqueryToJs( $elements )
 // - Get attribute values -
 function getJsonAttrVals( $element, attribute, defaultVals, objectMode = true )
 {
-    return ($element.attr(attribute) || '{}') == '{}' ?
+    let val = ($element.attr(attribute) || '{}') == '{}' ?
     { ...defaultVals }
     : JSON.parse( preJsonParse( $element.attr(attribute), true ) )
+
+    return val
 }
 
 // - Prepare for JSON parse -
 function preJsonParse( string, objectMode = true )
 {
-    let array = trimBothStringSides( string.replace(', ', ',') ).split(','),
+    let array = trimBothStringSides( string.replace(/\, /g, ',') ).split(','),
         newString = '',
         arrayLength = array.length - 1
 
@@ -1547,7 +1712,7 @@ function preJsonParse( string, objectMode = true )
     {
         item
             .replace(/\'/g, '')
-            .replace(': ', ':')
+            .replace(/\: /g, ':')
             .split(':')
             .forEach((item, i2) => 
             {
@@ -1687,110 +1852,6 @@ function populateStylesObject( $element )
 
     // Anchor functionality  
     styles['anchorAnimationSTime'] = parseFloat( $element.attr(anchorAnimationMsTimeAttribute) || styles['animationMsTime'] ) / 1000
-}
-
-
-// - - Progress bar functions - -
-
-
-// - Return longest or shortest path -
-function returnPathFloat( mode, clickRecord, stepLogicObject )
-{
-    // Values
-    let latestRecordId = clickRecord[clickRecord.length - 1].step,
-        clickRecordLength = clickRecord.length,
-        min = stepLogicObject.length,
-        max = 0,
-        count = 0,
-        tmpCount = 0,
-        currentLoopIndex = 0,
-        treeArray = []
-
-    
-    // Loop function
-    function objectLoop( object )
-    {
-        // Values
-        let array = returnNextStepIds( object )
-        
-        // Math
-        count++
-        tmpCount++
-
-        // Handle multi steps logic
-        if ( array.length > 1 ) // a tree split
-        {
-            treeArray.push(tmpCount)
-            tmpCount = 0
-        }
-
-        // Update values
-        if ( object.isLast )
-        {
-            // Update values
-            max = Math.max(max, count)
-            min = Math.min(min, count)
-            count = 0
-
-            // Add base value to tree
-            treeArray.forEach(n => 
-            {
-                count += n
-            })
-
-            // Trim back a leaf
-            treeArray.pop()
-
-            // Security conditional
-            return
-        }
-
-        // Action loop
-        array.forEach((id, index) => 
-        {
-            // Iniciate loop
-            objectLoop( stepLogicObject[id] )
-        })
-    }
-
-    // Return buttons
-    function returnNextStepIds( object )
-    {
-        // Value
-        let arr = []
-        
-        object.buttons.forEach(button => 
-        {
-            if ( arr.indexOf(button.nextStepId) === -1 )
-            {
-                arr.push(button.nextStepId)
-            }
-        })
-
-        // Return
-        return arr
-    }
-
-    // Intiliaze loop
-    objectLoop( stepLogicObject[latestRecordId] )
-
-
-    // Finetune math values
-    min += clickRecordLength
-    max += clickRecordLength
-
-    
-    // Logic
-    if ( mode == 'shortest' )
-    {
-        let x = clickRecordLength / min
-        return x * 100
-    }
-    else
-    {
-        let x = clickRecordLength / max
-        return x * 100
-    }
 }
 
 
