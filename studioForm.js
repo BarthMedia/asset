@@ -3,7 +3,8 @@
 // + Global strings +
 
 // Dependencies - make sure scripts don't load twice
-const gsapDependency = typeof gsap, 
+const gsapDependency = typeof gsap,
+    gsapScrollToDependency = $('body').attr('bmg-data-gsap-scroll-already-installed'),
     hammerJsDependency = typeof Hammer
 
 // Custom selectors
@@ -16,7 +17,8 @@ const formBlockSelctor = '[bmg-form = "Form Block"]',
     backwardsButtonSelector = '[bmg-form = "Backwards Button"]',
     notAButtonSelector = '[bmg-form = "Not a Button"]',
     quizResultSelector = '[bmg-form = "Quiz Result"]',
-    progressBarSelector = '[bmg-form = "Progress Bar"]'
+    progressBarSelector = '[bmg-form = "Progress Bar"]',
+    anchorElementSelector = '[bmg-form = "Anchor Element"]'
 
 // Webflow classes
 const radioSelector = '.w-radio',
@@ -114,7 +116,9 @@ const cssShowAttribute = 'bmg-data-css-show',
     submitHideAttribute = 'bmg-data-submit-hide',
     redirectMsTimeAttribute = 'bmg-data-redirect-ms-time',
     progressBarAnimationMsTimeAttribute = 'bmg-data-progress-bar-ms-time',
-    progressBarAxisAttribute = 'bmg-data-progress-bar-axis'
+    progressBarAxisAttribute = 'bmg-data-progress-bar-axis',
+    anchorMinScreenSizeAttribute = 'bmg-data-anchor-min-screen-size',
+    anchorMaxScreenSizeAttribute = 'bmg-data-anchor-max-screen-size'
 
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
@@ -140,7 +144,9 @@ const cssShowDefault = { opacity: 1, display: 'flex' },
     maxSwipeScreenSizeDefault = 767,
     minSwipeScreenSizeDefault = 0,
     redirectMsTimeDefault = 1,
-    progressBarAxisDefault = 'x'
+    progressBarAxisDefault = 'x',
+    anchorMinScreenSizeDefault = 0,
+    anchorMaxScreenSizeDefault = 767
 
 // Styles object
 let stylesObject = []
@@ -181,7 +187,8 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         backButtons = jqueryToJs( $backButton ),
         nextButtons = jqueryToJs( $nextButton ),
         $progressBar = $formBlock.find( progressBarSelector ),
-        progressBars = jqueryToJs( $progressBar )
+        progressBars = jqueryToJs( $progressBar ),
+        $anchor = $formBlock.find( anchorElementSelector ).eq(0)
 
     // Glocal variables
     let clickRecord = [{step: 0}],
@@ -307,7 +314,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     let stepLogicObject = creatNextStepObject( $steps )
 
 
-    // - Update progress bar
+    // - Update progress bar -
 
     // Values
     let pbAnimationtime = stylesObject[formBlockIndex]['progressBarAnimationSTime'],
@@ -334,6 +341,30 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         }
     }
     updateProgressBar() // Initialize
+
+
+    // - Anchor funcitonality -
+
+    // Dom preperation
+    $anchor.attr('id', `anchor-element-${ formBlockIndex }`)
+
+    // Function
+    function anchorFunctionality()
+    {
+        if ( $anchor.length == 1 )
+        {
+            // Values
+            let anchorMinScreenSize = parseInt( $anchor.attr( anchorMinScreenSizeAttribute ) || anchorMinScreenSizeDefault ),
+                anchorMaxScreenSize = parseInt( $anchor.attr( anchorMaxScreenSizeAttribute ) || anchorMaxScreenSizeDefault ),
+                width = $(window).outerWidth( true )
+
+            // If within specified scren size
+            if ( width <= anchorMaxScreenSize && width >= anchorMinScreenSize)
+            {
+                console.log($anchor, anchorMinScreenSize, anchorMaxScreenSize)
+            }
+        }
+    }
 
 
     // - Find next -
@@ -403,6 +434,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
             // Update progres bar
             updateProgressBar()
+
+            // Perfomr anchor functionality
+            anchorFunctionality()
         }
 
         // Dev mode
@@ -443,6 +477,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
         // Update progres bar
         updateProgressBar()
+
+        // Perfomr anchor functionality
+        anchorFunctionality()
 
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
@@ -1762,9 +1799,18 @@ jQuery.loadScript = function (url, callback) {
           loadGsap();
       })
     : loadGsap();
+    
 function loadGsap() {
     "undefined" == gsapDependency
         ? $.loadScript("https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js", function () {
+              loadGsapScrollTo();
+          })
+        : loadGsapScrollTo();
+}
+
+function loadGsapScrollTo() {
+    "undefined" == gsapScrollToDependency
+        ? $.loadScript("https://cdn.jsdelivr.net/gh/BarthMedia/js@main/ScrollToPlugin.min.js", function () {
               main();
           })
         : main();
