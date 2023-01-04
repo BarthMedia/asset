@@ -357,19 +357,17 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             {
                 goToNextStep( currentStepId, clickedButtonId )
             }
-            else // Requirements not passed
-            {
-                // Update next button
-                updateNextButton( currentStepId )
-            }
         }
         else
         {
             // Select button number 1
             selectButton( 0, $currentStep, $formBlock )
-            
-            // Update next button
-            updateNextButton( currentStepId )
+
+            if ( stepRequirementsPassed( $formBlock, $currentStep ) )
+            {
+                // Update next button
+                updateNextButton( currentStepId )
+            }
         }
     }
 
@@ -436,7 +434,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             animateStepTransition( $currentStep, $prevStep, $form, devMode )
         }
         
-        if ( clickRecord.length <= 2 && $backButton.length > 0 ) // Is approaching first step
+        if ( clickRecord.length <= 1 && $backButton.length > 0 ) // Is approaching first step
         {
             // Inactivate back button
             gsap.to(backButtons, stylesObject[formBlockIndex]['cssBackForthInactive'])
