@@ -284,7 +284,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             $clickedButton = $step.find(`[${ markClickElementAttribute } = "true"]`)
 
         // Action logic
-        if ( $clickedButton.length > 0 ) // If a clicked button exists
+        if ( $clickedButton.length > 0 && stepRequirementsPassed( $formBlock, $step ) ) // If a clicked button exists
         {
             gsap.to(nextButtons, stylesObject[formBlockIndex]['cssBackForthActive'])
         }
@@ -363,11 +363,8 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
             // Select button number 1
             selectButton( 0, $currentStep, $formBlock )
 
-            if ( stepRequirementsPassed( $formBlock, $currentStep ) )
-            {
-                // Update next button
-                updateNextButton( currentStepId )
-            }
+            // Update next button
+            updateNextButton( currentStepId )
         }
     }
 
@@ -693,7 +690,7 @@ function errorStatus( mode = 'add', $elements, styleIndex )
 
 
 // - - check step requirments - -
-function stepRequirementsPassed( $formBlock, $currentStep )
+function stepRequirementsPassed( $formBlock, $currentStep, mode = '100%' )
 {
     // Variables
     let stepStype = $currentStep.attr(stepTypeAttribute),
@@ -710,7 +707,7 @@ function stepRequirementsPassed( $formBlock, $currentStep )
     }
     else if ( stepStype == 'checkbox' )
     {
-        console.log(`Please continue to programm the required checking functionality for ${ stepStype } step types.`)
+        if ( mode == '100%' ) console.log(`Please continue to programm the required checking functionality for ${ stepStype } step types.`)
         
         return true
     }
@@ -728,13 +725,13 @@ function stepRequirementsPassed( $formBlock, $currentStep )
         if ( $checked.length == 0 )
         {
             // Throw error
-            errorStatus( 'add', $radios, styleIndex )
+            if ( mode == '100%' ) errorStatus( 'add', $radios, styleIndex )
 
             // Prevent double clicking
-            $radios.off('click.stepRequirements')
+            if ( mode == '100%' ) $radios.off('click.stepRequirements')
 
             // Add clickevent
-            $radios.on('click.stepRequirements', function()
+            if ( mode == '100%' ) $radios.on('click.stepRequirements', function()
             {
                 // Remove error
                 errorStatus( 'remove', $radios, styleIndex )
@@ -761,7 +758,7 @@ function stepRequirementsPassed( $formBlock, $currentStep )
         let $inputs = $currentStep.find('input, select')
 
         // Reset
-        errorStatus( 'remove', $inputs, styleIndex )
+        if ( mode == '100%' ) errorStatus( 'remove', $inputs, styleIndex )
 
         // Loop
         $inputs.each(function()
@@ -776,7 +773,7 @@ function stepRequirementsPassed( $formBlock, $currentStep )
                 {
                     // Throw error
                     returnTrue = false
-                    errorStatus( 'add', $input, styleIndex )
+                    if ( mode == '100%' ) errorStatus( 'add', $input, styleIndex )
                 }
             }
         })
@@ -784,7 +781,7 @@ function stepRequirementsPassed( $formBlock, $currentStep )
         // Logic
         if ( returnTrue ) 
         {
-            errorStatus( 'remove', $inputs, styleIndex )
+            if ( mode == '100%' ) errorStatus( 'remove', $inputs, styleIndex )
             return true
         }
         else
