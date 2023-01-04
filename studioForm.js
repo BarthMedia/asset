@@ -1,3 +1,4 @@
+(() => {
 /* Start of: BMG - Universal multistep forms script */
 
 // + Global strings +
@@ -1757,3 +1758,4 @@ function loadGsap() {
 }
 
 /* End of: BMG - Universal multistep forms script */
+})()
