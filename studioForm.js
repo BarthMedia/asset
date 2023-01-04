@@ -31,6 +31,7 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     stepIndexAttribute = 'bmg-data-step-index',
     stepTypeAttribute = 'bmg-data-step-type',
     stepRequiredAttribute = 'bmg-data-required',
+    stepCustomRequirementsPassedAttribute = 'bmg-data-custom-requirements-passed',
     relativeLastStepAttribute = 'bmg-data-relative-last-step',
     conditionalAttribute = 'bmg-data-conditional',
     conditionalNextAttribute = 'bmg-data-conditional-next',
@@ -749,6 +750,21 @@ function stepRequirementsPassed( $formBlock, $currentStep, mode = '100%' )
             return true
         }
     }
+    else if ( stepStype == 'custom' )
+    {
+        // Values
+        let requirementsPassed = $currentStep.attr( stepCustomRequirementsPassedAttribute ) || 'false'
+
+        // Logic
+        if ( requirementsPassed == 'false' )
+        {
+            return false
+        }
+        else // Requirements are passed
+        {
+            return true
+        }
+    }
     else // Other input types
     {
         // Values
@@ -1413,7 +1429,7 @@ function defineStepType( $step, stepIndex, $formBlock )
     }
 
     // Else return empty
-    $step.attr(stepTypeAttribute, 'empty')
+    if ( $step.attr(stepTypeAttribute) == undefined ) $step.attr(stepTypeAttribute, 'empty')
 
     return $buttons
 }
