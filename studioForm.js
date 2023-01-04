@@ -118,7 +118,9 @@ const cssShowAttribute = 'bmg-data-css-show',
     progressBarAnimationMsTimeAttribute = 'bmg-data-progress-bar-ms-time',
     progressBarAxisAttribute = 'bmg-data-progress-bar-axis',
     anchorMinScreenSizeAttribute = 'bmg-data-anchor-min-screen-size',
-    anchorMaxScreenSizeAttribute = 'bmg-data-anchor-max-screen-size'
+    anchorMaxScreenSizeAttribute = 'bmg-data-anchor-max-screen-size',
+    anchorAnimationMsTimeAttribute = 'bmg-data-anchor-animation-ms-time',
+    anchorYOffsetSelectorAttribute = 'bmg-data-anchor-y-offset-selector'
 
 // Style defaults
 const cssShowDefault = { opacity: 1, display: 'flex' },
@@ -345,6 +347,15 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
     // - Anchor funcitonality -
 
+    // Values
+    let anchorMinScreenSize = parseInt( $anchor.attr( anchorMinScreenSizeAttribute ) || anchorMinScreenSizeDefault ),
+        anchorMaxScreenSize = parseInt( $anchor.attr( anchorMaxScreenSizeAttribute ) || anchorMaxScreenSizeDefault ),
+        anchorAnimationTime = stylesObject[formBlockIndex]['anchorAnimationSTime'],
+        anchorYOffsetSelector = $anchor.attr( anchorYOffsetSelectorAttribute )
+
+    // Element
+    let $anchorYOffset = $(anchorYOffsetSelector)
+
     // Dom preperation
     $anchor.attr('id', `anchor-element-${ formBlockIndex }`)
 
@@ -354,14 +365,13 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         if ( $anchor.length == 1 )
         {
             // Values
-            let anchorMinScreenSize = parseInt( $anchor.attr( anchorMinScreenSizeAttribute ) || anchorMinScreenSizeDefault ),
-                anchorMaxScreenSize = parseInt( $anchor.attr( anchorMaxScreenSizeAttribute ) || anchorMaxScreenSizeDefault ),
-                width = $(window).outerWidth( true )
+            let width = $(window).outerWidth( true ),
+                height = $anchorYOffset.outerHeight( true ) || 0
 
             // If within specified scren size
             if ( width <= anchorMaxScreenSize && width >= anchorMinScreenSize)
             {
-                console.log($anchor, anchorMinScreenSize, anchorMaxScreenSize)
+                gsap.to(window, { scrollTo: { y: `#anchor-element-${ formBlockIndex }`, offsetY: height }, duration: anchorAnimationTime })
             }
         }
     }
@@ -1674,6 +1684,9 @@ function populateStylesObject( $element )
     // Progress bar
     styles['progressBarAnimationSTime'] = parseFloat( $element.attr(progressBarAnimationMsTimeAttribute) || styles['animationMsTime'] ) / 1000
     styles['progressBarAxis'] = $element.attr(progressBarAxisAttribute) || progressBarAxisDefault
+
+    // Anchor functionality  
+    styles['anchorAnimationSTime'] = parseFloat( $element.attr(anchorAnimationMsTimeAttribute) || styles['animationMsTime'] ) / 1000
 }
 
 
@@ -1809,7 +1822,7 @@ function loadGsap() {
 }
 
 function loadGsapScrollTo() {
-    "undefined" == gsapScrollToDependency
+    undefined == gsapScrollToDependency
         ? $.loadScript("https://cdn.jsdelivr.net/gh/BarthMedia/js@main/ScrollToPlugin.min.js", function () {
               main();
           })
