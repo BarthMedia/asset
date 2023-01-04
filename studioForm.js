@@ -313,23 +313,23 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         pbAxis = stylesObject[formBlockIndex]['progressBarAxis'].toLowerCase()
 
     // Function
-    function updateProgressBar( stepId = 0 )
+    function updateProgressBar( isSubmit = false )
     {
         // Security return check
         if ( $progressBar.length < 1 ) return
 
         // Values
-        let percentageDecimal = returnPathFloat( 'longest', clickRecord, stepLogicObject ) // Return longest path
+        let percentageFloat = isSubmit ? 100 : returnPathFloat( 'longest', clickRecord, stepLogicObject ) // Return longest path
 
         // Axis logic
         if ( ['x', 'x, y', 'y, x'].includes( pbAxis )  ) // X axis animation
         {
-            console.log("x -- I am getting called", percentageDecimal, pbAnimationtime)
+            gsap.to(progressBars, { width: percentageFloat + '%', duration: pbAnimationtime })
         }
 
         if ( ['y', 'x, y', 'y, x'].includes( pbAxis )  ) // Y axis animation
         {
-            console.log("y -- I am getting called")
+            gsap.to(progressBars, { height: percentageFloat + '%', duration: pbAnimationtime })
         }
     }
     updateProgressBar() // Initialize
@@ -407,7 +407,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         updateNextButton( nextStepId )
 
         // Update progres bar
-        updateProgressBar( nextStepId )
+        updateProgressBar()
 
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
@@ -446,7 +446,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         updateNextButton( prevStepId )
 
         // Update progres bar
-        updateProgressBar( prevStepId )
+        updateProgressBar()
 
         // Dev mode
         if ( devMode > .5 ) { console.log(`Dev mode ${ devMode }; Click record: `, clickRecord) }
@@ -477,6 +477,9 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
         // Initialize quiz mode
         initQuizMode( $formBlock, clickRecord )
+
+        // Update progress bar
+        updateProgressBar( true )
 
         // Submit
         performVisualSubmit( $formBlock, $form, devMode )
@@ -1717,12 +1720,12 @@ function returnPathFloat( mode, clickRecord, stepLogicObject )
     if ( mode == 'shortest' )
     {
         let x = clickRecordLength / min
-        console.log(x * 100)
+        return x * 100
     }
     else
     {
         let x = clickRecordLength / max
-        console.log(x * 100)
+        return x * 100
     }
 }
 
