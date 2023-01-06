@@ -27,7 +27,7 @@ const radioSelector = '.w-radio',
     successSelector = '.w-form-done',
     conditionInvisibleSelector = '.w-condition-invisible'
 
-// Functional attribues
+// Functional attributes
 const formBlockindexAttribute = 'bmg-data-form-block-index',
     stepIndexAttribute = 'bmg-data-step-index',
     stepTypeAttribute = 'bmg-data-step-type',
