@@ -52,14 +52,16 @@ const formBlockindexAttribute = 'bmg-data-form-block-index',
     swipeAllowedAttribute = 'bmg-data-swipe-allowed',
     quizPathAttribute = 'bmg-data-quiz-path',
     redirectUrlAttribute = 'bmg-data-redirect-url',
-    autoDeleteConditionallyInvisibleItemsAttribute = 'bmg-data-auto-delete-conditionally-invisible-elements'
+    autoDeleteConditionallyInvisibleItemsAttribute = 'bmg-data-auto-delete-conditionally-invisible-elements',
+    autoDetectNextStepAttribute = 'bmg-data-auto-detect-next-step'
 
 // Functional defaults
 const escEventDefault = 'escape, esc, arrowup, up',
     enterEventDefault = 'enter, arrowdown, down',
     leftEventDefault = 'arrowleft, left',
     rightEventDefault = 'arrowright, right',
-    leftRightKeyEventInfinityAllowedDefault = 'true'
+    leftRightKeyEventInfinityAllowedDefault = 'true',
+    autoDetectNextStepDefault = 'false'
 
 // Development mode object 
 const devModeObject = [
@@ -198,7 +200,8 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         keyEventsAllowed = true
 
     // Glocal attributes
-    let devMode = returnDevModeIndex( $formBlock )
+    let devMode = returnDevModeIndex( $formBlock ),
+        autoDetectNextStep = ( $formBlock.attr(autoDetectNextStepAttribute) || autoDetectNextStepDefault ) == 'true'
 
     
     // - Styling -
@@ -280,7 +283,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
     // - Next button(s) -
     $nextButton.each(function()
     {
-        $(this).click(() => { findNext() })
+        $(this).click(() => { findNext( false, autoDetectNextStep ) })
     })
 
     
@@ -382,7 +385,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
 
 
     // - Find next -
-    function findNext( triggeredBySwipe = false )
+    function findNext( triggeredBySwipe = false, autoDetectNextStep = true )
     {
         // Variables
         let currentStepId = clickRecord[clickRecord.length -1].step, // Get current click record entry
@@ -407,7 +410,7 @@ function main() { $(formBlockSelctor).each(function( formBlockIndex )
         else
         {
             // Select button number 1
-            selectButton( 0, $currentStep, $formBlock )
+            if ( autoDetectNextStep ) selectButton( 0, $currentStep, $formBlock )
 
             // Update next button
             updateNextButton( currentStepId )
