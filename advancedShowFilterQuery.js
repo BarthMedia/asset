@@ -14,7 +14,7 @@
     filtersSelector =
       '[fs-cmsfilter-element="filters"], [bmg-element="Button Triggers"]',
     searchSelector = 'input[type="text"]',
-    buttonSelector = '.w-checkbox, .w-radio, , [bmg-element="Button Trigger"]';
+    buttonSelector = '.w-checkbox, .w-radio, a, [bmg-element="Button Trigger"]';
 
   // Attributes
 
