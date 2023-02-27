@@ -11,9 +11,10 @@
       '[bmg-element="Results Gramma No Search Span"]',
     searchInputQuerySelector = '[bmg-element="Results Query"]',
     filterListSelector = '[fs-cmsfilter-element="list"]',
-    filtersSelector = '[fs-cmsfilter-element="filters"]',
+    filtersSelector =
+      '[fs-cmsfilter-element="filters"], [bmg-element="Button Triggers"]',
     searchSelector = 'input[type="text"]',
-    buttonSelector = '.w-checkbox, .w-radio';
+    buttonSelector = '.w-checkbox, .w-radio, , [bmg-element="Button Trigger"]';
 
   // Attributes
 
