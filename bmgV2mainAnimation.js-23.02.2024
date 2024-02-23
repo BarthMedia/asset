@@ -7,12 +7,16 @@
   let is1280Desktop;
   let isDesktop;
   let isMobile;
+  let appIconOffsetDeduction;
 
   // Calculate viewports
   function calcViewports() {
     is1280Desktop = windowWidth > 1279;
     isDesktop = windowWidth > 991;
     isMobile = windowWidth < 768;
+    appIconOffsetDeduction = document.querySelector(
+      '[gsap="webflow-icon"]'
+    ).offsetLeft;
   }
   calcViewports();
 
@@ -142,16 +146,30 @@
 
   // Add / remove class
   function alterClass(element, className, mode = 'remove') {
-    element.classList[mode](className);
+    // Values
+    const elements = element instanceof NodeList ? element : [element];
+
+    // Loop
+    elements.forEach(element => element.classList[mode](className));
   }
 
   // Add / remove class for icon
+  const appIconsWrapper = document.querySelector('[gsap="app-icons-wrapper"]');
   function activateAppIcon(element, activate = true) {
     // Alter class
     alterClass(element, 'is-inactive', activate ? 'remove' : 'add');
 
     // If mobile, scroll to icon
-    // TODO if (activate) {}
+    if (isMobile && activate) {
+      // Values
+      const iconOffset = element.offsetLeft - appIconOffsetDeduction;
+
+      // Scroll to
+      appIconsWrapper.scrollTo({
+        left: iconOffset,
+        behavior: 'smooth',
+      });
+    }
   }
 
   // GSAP Main animation
@@ -165,6 +183,10 @@
     const supabaseIcon = document.querySelector('[gsap="supabase-icon"]');
 
     // Center
+    const centerComponent = document.querySelector('[gsap="center-component"]');
+    const centerComponentAnchor = document.querySelector(
+      '[gsap-anchor="properties"]'
+    );
     const centerElements = document.querySelectorAll('[gsap="center"]');
     const centerPopup = document.querySelectorAll('[gsap="popup"]');
     const centerPopupBackground =
@@ -172,6 +194,15 @@
     const centerPopupBlur = document.querySelectorAll('[gsap="popup-blur"]');
     const centerPopupContent = document.querySelectorAll(
       '[gsap="popup-content"]'
+    );
+    const centerLoadStart = document.querySelectorAll(
+      '[gsap="center-load-start"]'
+    );
+    const centerLoadAwait = document.querySelectorAll(
+      '[gsap="center-load-await"]'
+    );
+    const centerLoadResult = document.querySelectorAll(
+      '[gsap="center-load-result"]'
     );
 
     // Lotties
@@ -338,7 +369,8 @@
     if (isMobile) tl.call(activateAppIcon, [supabaseIcon]);
 
     // - Set awaiting state for "rendered data" -
-    // TODO
+    tl.call(alterClass, [centerLoadStart, 'hide', 'add']);
+    tl.call(alterClass, [centerLoadAwait, 'hide']);
 
     // - Close popup -
 
@@ -355,11 +387,23 @@
     // Wrapper
     tl.set(centerPopup, { display: 'none' });
 
+    // Await - as animation is nearly done -
+    tl.to({}, { delay: 0.25 });
+
     // - Render "data" -
-    // TODO
+    tl.call(alterClass, [centerLoadAwait, 'hide', 'add']);
+    tl.call(alterClass, [centerLoadResult, 'hide']);
+
+    // Await - as animation is nearly done -
+    tl.to({}, { delay: 0.1 });
 
     // - Scroll down -
-    // TODO
+    tl.call(() => {
+      centerComponent.scrollTo({
+        top: centerComponentAnchor.offsetTop,
+        behavior: 'smooth',
+      });
+    });
 
     // Deactivate supabase icon
     tl.call(activateAppIcon, [supabaseIcon, false]);
@@ -408,13 +452,21 @@
 
       // Show lef side webflow component
       tl.to(leftWebflowWrapper, { display: 'block' });
+    } else {
+      // Await - as animation is now done -
+      tl.to({}, { delay: 0.5 });
     }
 
     // - Reset "rendered data"
-    // TODO
+    tl.call(alterClass, [centerLoadResult, 'hide', 'add']);
+    tl.call(alterClass, [centerLoadStart, 'hide']);
 
     // - Reset scroll -
-    // TODO
+    tl.call(() => {
+      centerComponent.scrollTo({
+        top: 0,
+      });
+    });
 
     // Add variable
     gsapTimelines.push(tl);
@@ -427,3 +479,4 @@
     });
   else createMainTimeline(false);
 })();
+
