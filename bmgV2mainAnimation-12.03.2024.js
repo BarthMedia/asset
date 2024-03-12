@@ -108,7 +108,7 @@
       {
         x: isDesktop ? 0 : '100%',
         y: !isDesktop ? 0 : '-100%',
-        duration: 2,
+        duration: 2.5,
         ease: 'none',
       }
     );
@@ -123,7 +123,7 @@
       {
         x: isDesktop ? 0 : '-100%',
         y: !isDesktop ? 0 : '100%',
-        duration: 2,
+        duration: 2.5,
         ease: 'none',
       },
       '<'
@@ -141,7 +141,9 @@
   // Trigger webflow lottie animations
   function trigger(elements) {
     // Loop
-    elements.forEach(element => element.click());
+    (elements instanceof NodeList ? elements : [elements]).forEach(element =>
+      element.click()
+    );
   }
 
   // Add / remove class
@@ -204,6 +206,14 @@
     const centerLoadResult = document.querySelectorAll(
       '[gsap="center-load-result"]'
     );
+    const centerLoginButton = document.querySelector(
+      '[gsap-center="login-button"]'
+    );
+
+    // Center trigger
+    const centerTrigger1 = document.querySelector('[gsap="center-trigger-1"]');
+    const centerTrigger2 = document.querySelector('[gsap="center-trigger-2"]');
+    const centerTrigger3 = document.querySelector('[gsap="center-trigger-3"]');
 
     // Lotties
     const wfLotties = document.querySelectorAll('[gsap="webflow-lottie"]');
@@ -214,6 +224,9 @@
     );
 
     // Other
+    const leftIconBarWrapper = document.querySelectorAll(
+      '[gsap="left-icon-bar-wrapper"]'
+    );
     const leftContentWrapper = document.querySelectorAll(
       '[gsap="left-content-wrapper"]'
     );
@@ -223,18 +236,19 @@
     const rightComponent = document.querySelectorAll(
       '[gsap="right-component"]'
     );
-    const leftWebflowWrapper = document.querySelectorAll(
-      '[gsap="webflow-left-wrapper"]'
+    const webflowLottieWrappers = document.querySelectorAll(
+      '[gsap="webflow-lottie-wrapper"]'
     );
-    const leftWizedWrapper = document.querySelectorAll(
-      '[gsap="wized-left-wrapper"]'
+    const wizedLottieWrappers = document.querySelectorAll(
+      '[gsap="wized-lottie-wrapper"]'
     );
-    const leftXanoWrapper = document.querySelectorAll(
-      '[gsap="xano-left-wrapper"]'
+    const xanoLottieWrappers = document.querySelectorAll(
+      '[gsap="xano-lottie-wrapper"]'
     );
-    const leftSupabaseWrapper = document.querySelectorAll(
-      '[gsap="supabase-left-wrapper"]'
+    const supabaseLottieWrappers = document.querySelectorAll(
+      '[gsap="supabase-lottie-wrapper"]'
     );
+    const endBackgrounds = document.querySelectorAll('[gsap="end-bg"]');
 
     // Variables
     const tl = gsap.timeline({ repeat: -1 });
@@ -242,14 +256,14 @@
     // - Define -
 
     // Start delay
-    tl.to({}, { duration: 0.1 });
+    if (!isMobile) tl.to({}, { duration: 1.25 });
 
     // Activate webflow icon
     tl.call(activateAppIcon, [wfIcon]);
 
     // Start wf lotties & delay
     if (!isMobile) {
-      tl.call(trigger, [wfLotties]).to({}, { duration: 1.5 });
+      tl.call(trigger, [wfLotties]).to({}, { duration: 1.95 });
     }
 
     // Trickle in center elements
@@ -265,34 +279,48 @@
       // 2nd trigger wf lotties
       tl.call(trigger, [wfLotties]);
 
+      // Play out delay
+      tl.to({}, { duration: 1.95 });
+
+      // Hide left side webflow component
+      tl.set(webflowLottieWrappers, { display: 'none' });
+
+      // Show lef side wized component
+      tl.set(wizedLottieWrappers, { display: 'flex' });
+
       // Expand left
-      tl.to(leftContentWrapper, { width: '33.375rem', duration: 1.5 });
+      tl.to(leftContentWrapper, { width: '33.375rem', duration: 1.25 });
       if (!is1280Desktop)
-        tl.to(leftComponentGhost, { width: '19rem', duration: 1.5 }, '<');
+        tl.to(leftComponentGhost, { width: '19rem', duration: 1.25 }, '<');
+
+      // 1st trigger wized lotties
+      tl.call(trigger, [wizedLotties], '<');
+
+      // Activate wized icon
+      tl.call(activateAppIcon, [wizedIcon], '<');
 
       // Shrink right side pannel
       if (is1280Desktop)
         tl.to(
           rightComponent,
-          { marginLeft: '0rem', width: '0rem', duration: 1.5 },
+          { marginLeft: '0rem', width: '0rem', opacity: 0, duration: 1.25 },
           '<'
         );
 
-      // Hide left side webflow component
-      tl.to(leftWebflowWrapper, { display: 'none' });
-
-      // Show lef side wized component
-      tl.to(leftWizedWrapper, { display: 'block' });
-
-      // Activate wized icon
-      tl.call(activateAppIcon, [wizedIcon]);
-
-      // 1st trigger wized lotties
-      tl.call(trigger, [wizedLotties]).to({}, { duration: 1.5 });
+      // Await wized animations
+      tl.to({}, { duration: 2.3 - 1.25 });
     }
+
+    // Mobile delay
+    if (isMobile) tl.to({}, { duration: 0.75 });
 
     // Activate wized icon
     if (isMobile) tl.call(activateAppIcon, [wizedIcon]);
+
+    // Animate login button
+    tl.to(centerLoginButton, { scale: 0.65, duration: 0.125 });
+    tl.to(centerLoginButton, { scale: 1, duration: 0.125 });
+    tl.to({}, { duration: 0.25 });
 
     // - Open popup -
 
@@ -314,19 +342,29 @@
       '<'
     );
 
+    // Play center lottie
+    tl.call(trigger, [centerTrigger1]).to({}, { duration: 1.8 });
+
     // Deactivate wized icon
     tl.call(activateAppIcon, [wizedIcon, false]);
 
     // Reverse wized lotties & delay
     if (!isMobile) {
       // 2nd trigger wized lotties
-      tl.call(trigger, [wizedLotties]).to({}, { duration: 1.5 });
+      tl.call(trigger, [wizedLotties]).to({}, { duration: 2.3 });
+
+      // Contrapt left
+      tl.to(
+        leftContentWrapper,
+        { width: '28.1875rem', duration: 1.25 },
+        '-=1.25'
+      );
 
       // Hide left side wized component
-      tl.to(leftWizedWrapper, { display: 'none' });
+      tl.set(wizedLottieWrappers, { display: 'none' });
 
       // Show lef side xano component
-      tl.to(leftXanoWrapper, { display: 'block' });
+      tl.set(xanoLottieWrappers, { display: 'flex' });
 
       // Activate xano icon
       tl.call(activateAppIcon, [xanoIcon]);
@@ -334,15 +372,18 @@
       // 1st trigger xano lotties
       tl.call(trigger, [xanoLotties]);
 
-      // Contrapt left
-      tl.to(leftContentWrapper, { width: '28.1875rem', duration: 1.5 });
+      // Await xano animations
+      tl.to({}, { duration: 1.7 });
     }
+
+    // Mobile delay
+    if (isMobile) tl.to({}, { duration: 0.75 });
 
     // Activate xano icon
     if (isMobile) tl.call(activateAppIcon, [xanoIcon]);
 
     // Trigger Wized to Xano popup lottie action
-    // TODO
+    tl.call(trigger, [centerTrigger2]).to({}, { duration: 2.1 });
 
     // Deactivate xano icon
     tl.call(activateAppIcon, [xanoIcon, false]);
@@ -350,20 +391,23 @@
     // Reverse xano lotties & delay
     if (!isMobile) {
       // 2nd trigger xano lotties
-      tl.call(trigger, [xanoLotties]).to({}, { duration: 1.5 });
+      tl.call(trigger, [xanoLotties]).to({}, { duration: 1.7 });
 
       // Hide left side xano component
-      tl.to(leftXanoWrapper, { display: 'none' });
+      tl.set(xanoLottieWrappers, { display: 'none' });
 
       // Show lef side supabase component
-      tl.to(leftSupabaseWrapper, { display: 'block' });
+      tl.set(supabaseLottieWrappers, { display: 'flex' });
 
       // Activate supabase icon
       tl.call(activateAppIcon, [supabaseIcon]);
 
       // 1st trigger supabase lotties
-      tl.call(trigger, [supabaseLotties]).to({}, { duration: 1.5 });
+      tl.call(trigger, [supabaseLotties]).to({}, { duration: 1.4 });
     }
+
+    // Mobile delay
+    if (isMobile) tl.to({}, { duration: 0.75 });
 
     // Activate supabase icon
     if (isMobile) tl.call(activateAppIcon, [supabaseIcon]);
@@ -371,6 +415,37 @@
     // - Set awaiting state for "rendered data" -
     tl.call(alterClass, [centerLoadStart, 'hide', 'add']);
     tl.call(alterClass, [centerLoadAwait, 'hide']);
+
+    // Play center lottie (1.2)
+    tl.call(trigger, [centerTrigger3]).to(
+      {},
+      { duration: isMobile ? 1.2 : 0.75 }
+    );
+
+    // Reverse supabase lotties & delay
+    if (!isMobile) {
+      // 2nd trigger supabase lotties
+      tl.call(trigger, [supabaseLotties]).to({}, { duration: 1.4 });
+
+      // Hide left side supabase component
+      tl.set(supabaseLottieWrappers, { display: 'none' });
+
+      // Contrapt left
+      tl.to(leftContentWrapper, { width: '0rem', duration: 1.25 });
+      if (!is1280Desktop)
+        tl.to(leftComponentGhost, { width: '3.375rem', duration: 1.25 }, '<');
+
+      // Fade out leftIconBarWrapper
+      tl.to(leftIconBarWrapper, { opacity: 0, duration: 1.25 }, '<');
+
+      // Show end bg
+      tl.fromTo(
+        endBackgrounds,
+        { opacity: 0, display: 'none' },
+        { opacity: 1, display: 'block', duration: 1.25 },
+        '<'
+      );
+    }
 
     // - Close popup -
 
@@ -387,6 +462,9 @@
     // Wrapper
     tl.set(centerPopup, { display: 'none' });
 
+    // Deactivate supabase icon
+    tl.call(activateAppIcon, [supabaseIcon, false]);
+
     // Await - as animation is nearly done -
     tl.to({}, { delay: 0.25 });
 
@@ -400,30 +478,13 @@
     // - Scroll down -
     tl.call(() => {
       centerComponent.scrollTo({
-        top: centerComponentAnchor.offsetTop,
+        top: centerComponentAnchor.offsetTop - 48,
         behavior: 'smooth',
       });
     });
 
-    // Deactivate supabase icon
-    tl.call(activateAppIcon, [supabaseIcon, false]);
-
-    // Reverse supabase lotties & delay
-    if (!isMobile) {
-      // 2nd trigger supabase lotties
-      tl.call(trigger, [supabaseLotties]).to({}, { duration: 1.5 });
-
-      // Hide left side supabase component
-      tl.to(leftSupabaseWrapper, { display: 'none' });
-
-      // Contrapt left
-      tl.to(leftContentWrapper, { width: '0rem', duration: 1.5 });
-      if (!is1280Desktop)
-        tl.to(leftComponentGhost, { width: '3.375rem', duration: 1.5 }, '<');
-    }
-
     // Await - as animation is now done -
-    tl.to({}, { delay: 2 });
+    tl.to({}, { delay: 2.5 });
 
     // Remove trickle out center elements
     Array.from(centerElements)
@@ -438,20 +499,39 @@
     // Reverse width to start width
     if (!isMobile) {
       // Expand left
-      tl.to(leftContentWrapper, { width: '13.96875rem', duration: 1.5 });
+      tl.to(leftContentWrapper, { width: '13.96875rem', duration: 1.25 });
       if (!is1280Desktop)
-        tl.to(leftComponentGhost, { width: '17.34375rem', duration: 1.5 }, '<');
+        tl.to(
+          leftComponentGhost,
+          { width: '17.34375rem', duration: 1.25 },
+          '<'
+        );
+
+      // Fade in leftIconBarWrapper
+      tl.to(leftIconBarWrapper, { opacity: 1, duration: 1.25 }, '<');
 
       // Grow right side pannel
       if (is1280Desktop)
         tl.to(
           rightComponent,
-          { marginLeft: '0.625rem', width: '17.21875rem', duration: 1.5 },
+          {
+            marginLeft: '0.625rem',
+            width: '17.21875rem',
+            opacity: 1,
+            duration: 1.25,
+          },
           '<'
         );
 
+      // Hide end bg
+      tl.to(
+        endBackgrounds,
+        { opacity: 0, display: 'none', duration: 1.25 },
+        '<'
+      );
+
       // Show lef side webflow component
-      tl.to(leftWebflowWrapper, { display: 'block' });
+      tl.set(webflowLottieWrappers, { display: 'flex' });
     } else {
       // Await - as animation is now done -
       tl.to({}, { delay: 0.5 });
@@ -473,10 +553,8 @@
   }
 
   // Smart loading trigger mechanism
-  if (document.readyState === 'loading')
-    document.addEventListener('DOMContentLoaded', function () {
-      createMainTimeline(false);
-    });
-  else createMainTimeline(false);
+  window.Webflow = window.Webflow || [];
+  window.Webflow.push(() => {
+    createMainTimeline(false);
+  });
 })();
-
