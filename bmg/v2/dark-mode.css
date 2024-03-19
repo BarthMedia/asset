@@ -1,0 +1,6 @@
+:root {
+    --base-color-light-mode--punchy-blue: green;
+    --base-color-neutral--subtle-white-outline: black;
+    --base-color-neutral--subtle-white: red;
+    --base-color-light-mode--punchy-blue: var(--your-other-variable);
+  }
